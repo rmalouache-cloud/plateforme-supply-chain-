@@ -76,10 +76,6 @@ st.markdown("""
         color: #666;
     }
     
-    .back-button {
-        margin-bottom: 1rem;
-    }
-    
     .stButton > button {
         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         color: white;
@@ -125,13 +121,8 @@ def load_tool_from_path(tool_path, tool_name):
     try:
         # Vérifier si le fichier existe
         if not os.path.exists(tool_path):
-            st.error(f"❌ Fichier non trouvé: {tool_path}")
+            st.error(f"Fichier non trouve: {tool_path}")
             return False
-        
-        # Ajouter le dossier parent au path
-        tool_dir = os.path.dirname(tool_path)
-        if tool_dir not in sys.path:
-            sys.path.insert(0, tool_dir)
         
         # Lire et exécuter le fichier
         with open(tool_path, 'r', encoding='utf-8') as f:
@@ -142,7 +133,7 @@ def load_tool_from_path(tool_path, tool_name):
         return True
         
     except Exception as e:
-        st.error(f"❌ Erreur lors du chargement de {tool_name}: {str(e)}")
+        st.error(f"Erreur lors du chargement de {tool_name}: {str(e)}")
         return False
 
 # ==================== PAGE D'ACCUEIL ====================
@@ -162,11 +153,11 @@ def show_home():
         <h3>🎯 À propos</h3>
         <p>Cette plateforme centralise tous vos outils de vérification fournisseur :</p>
         <ul>
-            <li>✅ <strong>Dashboard</strong> - Vue d'ensemble des indicateurs</li>
-            <li>✅ <strong>Comparateur BOM vs Packing</strong> - Vérification des quantités</li>
-            <li>✅ <strong>Comparateur BOM vs BOM</strong> - Analyse des versions</li>
-            <li>✅ <strong>Check position</strong> - Vérification des positions</li>
-            <li>✅ <strong>Checking reply</strong> - Analyse des réponses fournisseur</li>
+            <li>✅ Dashboard - Vue d'ensemble des indicateurs</li>
+            <li>✅ Comparateur BOM vs Packing - Vérification des quantités</li>
+            <li>✅ Comparateur BOM vs BOM - Analyse des versions</li>
+            <li>✅ Check position - Vérification des positions</li>
+            <li>✅ Checking reply - Analyse des réponses fournisseur</li>
         </ul>
         <p>Sélectionnez l'outil ci-dessous pour commencer.</p>
     </div>
@@ -185,7 +176,7 @@ def show_home():
         {
             "name": "Comparateur BOM vs Packing",
             "icon": "📦",
-            "desc": "Vérification des quantités entre BOM et packing list",
+            "desc": "Verification des quantites entre BOM et packing list",
             "path": "comparator-bom_packing/app.py"
         },
         {
@@ -197,13 +188,13 @@ def show_home():
         {
             "name": "Check Position",
             "icon": "📍",
-            "desc": "Vérification des positions et emplacements",
+            "desc": "Verification des positions et emplacements",
             "path": "check_position/app.py"
         },
         {
             "name": "Checking Reply",
             "icon": "✅",
-            "desc": "Vérification et analyse des réponses fournisseur",
+            "desc": "Verification et analyse des reponses fournisseur",
             "path": "checking-reply/app.py"
         }
     ]
@@ -219,14 +210,14 @@ def show_home():
                     # Carte
                     st.markdown(f"""
                     <div class="feature-card">
-                        <div class="feature-icon">{tool["icon"]}</div>
-                        <div class="feature-title">{tool["name"]}</div>
-                        <div class="feature-desc">{tool["desc"]}</div>
+                        <div class="feature-icon">{tool['icon']}</div>
+                        <div class="feature-title">{tool['name']}</div>
+                        <div class="feature-desc">{tool['desc']}</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
                     # Bouton
-                    if st.button(f"🚀 Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
+                    if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
                         st.session_state.page = 'tool'
                         st.session_state.selected_tool = tool['name']
                         st.session_state.tool_path = tool['path']
@@ -264,9 +255,9 @@ def show_tool(tool_name, tool_path):
         
         if not success:
             st.error(f"Impossible de charger {tool_name}")
-            st.info(f"""
-            **Vérifications :**
-            1. Le dossier `{tool_path.split('/')[0]}` existe-t-il ?
-            2. Contient-il un fichier `app.py` ?
+            st.markdown("""
+            **Verifications :**
+            1. Le dossier existe-t-il ?
+            2. Contient-il un fichier app.py ?
             
             **Structure attendue :**
