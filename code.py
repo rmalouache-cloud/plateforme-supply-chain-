@@ -1,6 +1,5 @@
 import streamlit as st
 import os
-import sys
 
 # Configuration
 st.set_page_config(
@@ -108,13 +107,6 @@ st.markdown("""
     .about-section li {
         margin: 0.3rem 0;
     }
-    .debug-info {
-        background: #fef3c7;
-        padding: 0.8rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        font-size: 0.8rem;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -139,41 +131,28 @@ def go_home():
 
 def load_tool(tool_name, folder, filename):
     """Charge un outil depuis le dossier parent"""
-    # Le dossier parent (où se trouvent tous les outils)
-    parent_dir = os.path.dirname(os.getcwd())
+    current_dir = os.getcwd()
+    parent_dir = os.path.dirname(current_dir)
     
-    # Construire le chemin complet
-    file_path = os.path.join(parent_dir, folder, filename)
+    paths_to_try = [
+        os.path.join(parent_dir, folder, filename),
+        os.path.join(current_dir, folder, filename),
+        os.path.join("/mount/src", folder, filename),
+    ]
     
-    # Essayer aussi le chemin relatif
-    alt_path = os.path.join(os.getcwd(), folder, filename)
+    for path in paths_to_try:
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    code = f.read()
+                exec(code, globals())
+                return True
+            except Exception as e:
+                st.error(f"Erreur: {str(e)}")
+                return False
     
-    if os.path.exists(file_path):
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                code = f.read()
-            exec(code, globals())
-            return True
-        except Exception as e:
-            st.error(f"Erreur: {str(e)}")
-            return False
-    elif os.path.exists(alt_path):
-        try:
-            with open(alt_path, 'r', encoding='utf-8') as f:
-                code = f.read()
-            exec(code, globals())
-            return True
-        except Exception as e:
-            st.error(f"Erreur: {str(e)}")
-            return False
-    else:
-        st.error(f"Fichier non trouve: {folder}/{filename}")
-        st.info(f"""
-        **Chemins tries:**
-        - {file_path}
-        - {alt_path}
-        """)
-        return False
+    st.error(f"Fichier non trouve: {folder}/{filename}")
+    return False
 
 # ==================== PAGE D'ACCUEIL ====================
 
@@ -185,29 +164,27 @@ def show_home():
         <h3>🎯 A propos</h3>
         <p>Cette plateforme centralise tous vos outils de verification fournisseur :</p>
         <ul>
-            <li>📊 <strong>Container Dashboard</strong> - Tableau de bord des indicateurs et KPIs</li>
-            <li>📦 <strong>Comparateur BOM vs Packing</strong> - Verification des quantites</li>
-            <li>🔄 <strong>Comparateur BOM vs BOM</strong> - Analyse des versions</li>
-            <li>📍 <strong>Check Position</strong> - Verification des positions</li>
-            <li>✅ <strong>Checking Reply</strong> - Analyse des reponses fournisseur</li>
-            <li>📐 <strong>Box Calculator</strong> - Calcul du nombre de cartons</li>
+            <li>📊 Container Dashboard - Tableau de bord des indicateurs</li>
+            <li>📦 Comparateur BOM vs Packing - Verification des quantites</li>
+            <li>🔄 Comparateur BOM vs BOM - Analyse des versions</li>
+            <li>📍 Check Position - Verification des positions</li>
+            <li>✅ Checking Reply - Analyse des reponses fournisseur</li>
+            <li>📐 Box Calculator - Calcul du nombre de cartons</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
-    # Outils avec chemins relatifs au dossier parent
     tools = [
-        {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "folder": "container-dashboard", "file": "code.py"},
-        {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing list", "folder": "comparator-bom_packing", "file": "app.py"},
+        {"name": "Container Dashboard", "icon": "📊", "desc": "KPIs fournisseur", "folder": "container-dashboard", "file": "code.py"},
+        {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
         {"name": "BOM vs BOM", "icon": "🔄", "desc": "Comparaison versions BOM", "folder": "comparator-bom_bom", "file": "bom_old and new.py"},
-        {"name": "Check Position", "icon": "📍", "desc": "Verification des positions", "folder": "check_position", "file": "code.py"},
-        {"name": "Checking Reply", "icon": "✅", "desc": "Analyse des reponses", "folder": "checking-reply", "file": "checke replay.py"},
-        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul du nombre de cartons", "folder": "Box-calculator", "file": "app.py"}
+        {"name": "Check Position", "icon": "📍", "desc": "Verification positions", "folder": "check_position", "file": "code.py"},
+        {"name": "Checking Reply", "icon": "✅", "desc": "Analyse reponses", "folder": "checking-reply", "file": "checke replay.py"},
+        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul cartons", "folder": "Box-calculator", "file": "app.py"}
     ]
     
-    # Grille 3x3
     for i in range(0, len(tools), 3):
         cols = st.columns(3)
         for j in range(3):
@@ -215,13 +192,7 @@ def show_home():
             if idx < len(tools):
                 tool = tools[idx]
                 with cols[j]:
-                    st.markdown(f"""
-                    <div class="feature-card">
-                        <div class="feature-icon">{tool['icon']}</div>
-                        <div class="feature-title">{tool['name']}</div>
-                        <div class="feature-desc">{tool['desc']}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(f'<div class="feature-card"><div class="feature-icon">{tool["icon"]}</div><div class="feature-title">{tool["name"]}</div><div class="feature-desc">{tool["desc"]}</div></div>', unsafe_allow_html=True)
                     if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
                         st.session_state.page = 'tool'
                         st.session_state.selected_tool = tool['name']
@@ -229,30 +200,29 @@ def show_home():
                         st.session_state.tool_file = tool['file']
                         st.rerun()
     
-    # Footer
     st.markdown('<div class="footer"><p>© 2024 - Suite Outils Fournisseur | Version 2.0</p></div>', unsafe_allow_html=True)
 
 # ==================== CHARGEMENT DES OUTILS ====================
 
 def show_tool(tool_name, tool_folder, tool_file):
-    # Bouton retour
     col1, col2, col3 = st.columns([1, 8, 1])
     with col1:
         if st.button("← Accueil", key="back_home"):
             go_home()
     
-    # En-tête
     st.markdown(f'<div class="tool-header"><h2>🛠️ {tool_name}</h2></div>', unsafe_allow_html=True)
     
-    # Chargement
     with st.spinner(f"Chargement de {tool_name}..."):
         success = load_tool(tool_name, tool_folder, tool_file)
         
         if not success:
             st.error(f"Impossible de charger {tool_name}")
-            st.info("""
-            **Verifications:**
-            1. Le dossier doit etre au meme niveau que 'plateforme-supply-chain-'
-            2. Le fichier doit avoir le bon nom
-            
-            **Structure attendue:**
+            st.info("Verifiez que le fichier existe dans le dossier: " + tool_folder + "/" + tool_file)
+
+# ==================== ROUTAGE PRINCIPAL ====================
+
+if st.session_state.page == 'home':
+    show_home()
+elif st.session_state.page == 'tool':
+    if st.session_state.selected_tool and st.session_state.tool_folder and st.session_state.tool_file:
+        show_tool(st.session_state.selected_tool, st.session_state.tool_folder, st.session_state.tool_file)
