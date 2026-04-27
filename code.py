@@ -115,44 +115,31 @@ if 'page' not in st.session_state:
     st.session_state.page = 'home'
 if 'selected_tool' not in st.session_state:
     st.session_state.selected_tool = None
-if 'tool_folder' not in st.session_state:
-    st.session_state.tool_folder = None
-if 'tool_file' not in st.session_state:
-    st.session_state.tool_file = None
+if 'tool_path' not in st.session_state:
+    st.session_state.tool_path = None
 
 # ==================== FONCTIONS ====================
 
 def go_home():
     st.session_state.page = 'home'
     st.session_state.selected_tool = None
-    st.session_state.tool_folder = None
-    st.session_state.tool_file = None
+    st.session_state.tool_path = None
     st.rerun()
 
-def load_tool(tool_name, folder, filename):
-    """Charge un outil depuis le dossier parent"""
-    current_dir = os.getcwd()
-    parent_dir = os.path.dirname(current_dir)
-    
-    paths_to_try = [
-        os.path.join(parent_dir, folder, filename),
-        os.path.join(current_dir, folder, filename),
-        os.path.join("/mount/src", folder, filename),
-    ]
-    
-    for path in paths_to_try:
-        if os.path.exists(path):
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    code = f.read()
-                exec(code, globals())
-                return True
-            except Exception as e:
-                st.error(f"Erreur: {str(e)}")
-                return False
-    
-    st.error(f"Fichier non trouve: {folder}/{filename}")
-    return False
+def load_tool(tool_name, file_path):
+    """Charge un outil depuis son chemin"""
+    if os.path.exists(file_path):
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                code = f.read()
+            exec(code, globals())
+            return True
+        except Exception as e:
+            st.error(f"Erreur d execution: {str(e)}")
+            return False
+    else:
+        st.error(f"Fichier non trouve: {file_path}")
+        return False
 
 # ==================== PAGE D'ACCUEIL ====================
 
@@ -176,15 +163,17 @@ def show_home():
     
     st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
+    # Definition des outils avec les bons chemins (dossier rmalouache-cloud)
     tools = [
-        {"name": "Container Dashboard", "icon": "📊", "desc": "KPIs fournisseur", "folder": "container-dashboard", "file": "code.py"},
-        {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
-        {"name": "BOM vs BOM", "icon": "🔄", "desc": "Comparaison versions BOM", "folder": "comparator-bom_bom", "file": "bom_old and new.py"},
-        {"name": "Check Position", "icon": "📍", "desc": "Verification positions", "folder": "check_position", "file": "code.py"},
-        {"name": "Checking Reply", "icon": "✅", "desc": "Analyse reponses", "folder": "checking-reply", "file": "checke replay.py"},
-        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul cartons", "folder": "Box-calculator", "file": "app.py"}
+        {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "path": "../rmalouache-cloud/container-dashboard/code.py"},
+        {"name": "Comparateur BOM vs Packing", "icon": "📦", "desc": "Verification des quantites BOM/Packing", "path": "../rmalouache-cloud/comparator-bom_packing/app.py"},
+        {"name": "Comparateur BOM vs BOM", "icon": "🔄", "desc": "Analyse et comparaison des versions BOM", "path": "../rmalouache-cloud/comparator-bom_bom/bom_old and new.py"},
+        {"name": "Check Position", "icon": "📍", "desc": "Verification des positions", "path": "../rmalouache-cloud/check_position/code.py"},
+        {"name": "Checking Reply", "icon": "✅", "desc": "Analyse des reponses fournisseur", "path": "../rmalouache-cloud/checking-reply/checke replay.py"},
+        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul du nombre de cartons", "path": "../rmalouache-cloud/Box-calculator/app.py"}
     ]
     
+    # Affichage en grille
     for i in range(0, len(tools), 3):
         cols = st.columns(3)
         for j in range(3):
@@ -196,33 +185,35 @@ def show_home():
                     if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
                         st.session_state.page = 'tool'
                         st.session_state.selected_tool = tool['name']
-                        st.session_state.tool_folder = tool['folder']
-                        st.session_state.tool_file = tool['file']
+                        st.session_state.tool_path = tool['path']
                         st.rerun()
     
+    # Pied de page
     st.markdown('<div class="footer"><p>© 2024 - Suite Outils Fournisseur | Version 2.0</p></div>', unsafe_allow_html=True)
 
 # ==================== CHARGEMENT DES OUTILS ====================
 
-def show_tool(tool_name, tool_folder, tool_file):
-    col1, col2, col3 = st.columns([1, 8, 1])
-    with col1:
-        if st.button("← Accueil", key="back_home"):
+def show_tool():
+    # Bouton retour
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        if st.button("← Retour a l accueil", key="back_home"):
             go_home()
     
-    st.markdown(f'<div class="tool-header"><h2>🛠️ {tool_name}</h2></div>', unsafe_allow_html=True)
+    # En-tete
+    st.markdown(f'<div class="tool-header"><h2>🛠️ {st.session_state.selected_tool}</h2></div>', unsafe_allow_html=True)
     
-    with st.spinner(f"Chargement de {tool_name}..."):
-        success = load_tool(tool_name, tool_folder, tool_file)
+    # Chargement
+    with st.spinner(f"Chargement de {st.session_state.selected_tool}..."):
+        success = load_tool(st.session_state.selected_tool, st.session_state.tool_path)
         
         if not success:
-            st.error(f"Impossible de charger {tool_name}")
-            st.info("Verifiez que le fichier existe dans le dossier: " + tool_folder + "/" + tool_file)
+            st.error(f"Impossible de charger {st.session_state.selected_tool}")
+            st.info(f"Chemin recherche: {st.session_state.tool_path}")
 
 # ==================== ROUTAGE PRINCIPAL ====================
 
 if st.session_state.page == 'home':
     show_home()
 elif st.session_state.page == 'tool':
-    if st.session_state.selected_tool and st.session_state.tool_folder and st.session_state.tool_file:
-        show_tool(st.session_state.selected_tool, st.session_state.tool_folder, st.session_state.tool_file)
+    show_tool()
