@@ -83,6 +83,28 @@ st.markdown("""
         margin: 0;
         color: #1e3c72;
     }
+    /* Style pour la section À propos - texte foncé sur fond clair */
+    .about-section {
+        background: #e8f0fe;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        color: #1a1a2e;
+        border: 1px solid #c5d5e8;
+    }
+    .about-section h3 {
+        color: #1e3c72;
+        margin-top: 0;
+    }
+    .about-section ul {
+        color: #1a1a2e;
+    }
+    .about-section li {
+        color: #1a1a2e;
+    }
+    .about-section p {
+        color: #1a1a2e;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,10 +146,23 @@ def show_home():
     # En-tête
     st.markdown('<div class="hero"><h1>🏭 Suite Outils Fournisseur</h1><p>Plateforme integree pour la verification et l analyse des documents d expedition</p></div>', unsafe_allow_html=True)
     
-    # Présentation
-    st.markdown('<div style="background: #f0f4f8; padding: 1.5rem; border-radius: 15px; margin-bottom: 2rem;"><h3>🎯 A propos</h3><p>Cette plateforme centralise tous vos outils de verification fournisseur :</p><ul><li>✅ Dashboard - Vue d ensemble des indicateurs</li><li>✅ Comparateur BOM vs Packing - Verification des quantites</li><li>✅ Comparateur BOM vs BOM - Analyse des versions</li><li>✅ Check position - Verification des positions</li><li>✅ Checking reply - Analyse des reponses fournisseur</li></ul><p>Selectionnez l outil ci-dessous pour commencer.</p></div>', unsafe_allow_html=True)
+    # Présentation avec texte foncé
+    st.markdown("""
+    <div class="about-section">
+        <h3>🎯 A propos</h3>
+        <p>Cette plateforme centralise tous vos outils de verification fournisseur :</p>
+        <ul>
+            <li>✅ Dashboard - Vue d ensemble des indicateurs</li>
+            <li>✅ Comparateur BOM vs Packing - Verification des quantites</li>
+            <li>✅ Comparateur BOM vs BOM - Analyse des versions</li>
+            <li>✅ Check position - Verification des positions</li>
+            <li>✅ Checking reply - Analyse des reponses fournisseur</li>
+        </ul>
+        <p>Selectionnez l outil ci-dessous pour commencer.</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown('<h2 style="text-align: center; margin-bottom: 1.5rem;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="text-align: center; margin-bottom: 1.5rem; color: #1e3c72;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
     # Définition des outils
     tools = [
