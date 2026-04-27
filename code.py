@@ -111,9 +111,6 @@ st.markdown("""
     .about-section p {
         color: #1a1a2e;
     }
-    .back-button {
-        margin-bottom: 1rem;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -133,21 +130,59 @@ def go_home():
     st.session_state.tool_path = None
     st.rerun()
 
-def load_tool_from_path(tool_path, tool_name):
-    try:
-        if not os.path.exists(tool_path):
-            st.error(f"Fichier non trouve: {tool_path}")
-            return False
+def find_file_in_directory(directory, filename):
+    """Recherche un fichier dans un dossier et ses sous-dossiers"""
+    for root, dirs, files in os.walk(directory):
+        if filename in files:
+            return os.path.join(root, filename)
+    return None
+
+def load_tool_from_path(tool_name, folder_name, file_name):
+    """Charge un outil en cherchant le fichier"""
+    # Obtenir le dossier actuel
+    current_dir = os.getcwd()
+    
+    # Essayer différents chemins
+    possible_paths = [
+        os.path.join(current_dir, folder_name, file_name),
+        os.path.join(current_dir, folder_name),
+        os.path.join(current_dir, file_name),
+        os.path.join(current_dir, folder_name, "app.py"),
+        os.path.join(current_dir, folder_name, "code.py"),
+        os.path.join(current_dir, folder_name, "main.py"),
+    ]
+    
+    # Si le fichier a un nom spécifique, l'ajouter aux recherches
+    if file_name:
+        possible_paths.insert(0, os.path.join(current_dir, folder_name, file_name))
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    code = f.read()
+                exec(code, globals())
+                return True
+            except Exception as e:
+                st.error(f"Erreur d'execution: {str(e)}")
+                return False
+    
+    # Si non trouvé, afficher le contenu du dossier pour déboguer
+    st.error(f"Fichier non trouve: {folder_name}/{file_name}")
+    st.write(f"📁 Dossier courant: {current_dir}")
+    
+    # Lister les dossiers présents
+    if os.path.exists(current_dir):
+        items = os.listdir(current_dir)
+        st.write(f"📁 Contenu du dossier courant: {items}")
         
-        with open(tool_path, 'r', encoding='utf-8') as f:
-            code = f.read()
-        
-        exec(code, globals())
-        return True
-        
-    except Exception as e:
-        st.error(f"Erreur: {str(e)}")
-        return False
+        # Vérifier si le dossier existe
+        if os.path.exists(folder_name):
+            st.write(f"📁 Contenu de {folder_name}: {os.listdir(folder_name)}")
+        else:
+            st.warning(f"Le dossier '{folder_name}' n'existe pas")
+    
+    return False
 
 # ==================== PAGE D'ACCUEIL ====================
 
@@ -160,14 +195,14 @@ def show_home():
     
     st.markdown('<h2 style="text-align: center; margin-bottom: 1.5rem; color: #1e3c72;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
-    # Definition des outils
+    # Definition des outils (folder, filename)
     tools = [
-        {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des indicateurs et KPIs fournisseur", "path": "container-dashboard/code.py"},
-        {"name": "Comparateur BOM vs Packing", "icon": "📦", "desc": "Verification des quantites entre BOM et packing list", "path": "comparator-bom_packing/app.py"},
-        {"name": "Comparateur BOM vs BOM", "icon": "🔄", "desc": "Analyse et comparaison des versions BOM", "path": "comparator-bom_bom/bom_old and new.py"},
-        {"name": "Check Position", "icon": "📍", "desc": "Verification des positions et emplacements", "path": "check_position/code.py"},
-        {"name": "Checking Reply", "icon": "✅", "desc": "Verification et analyse des reponses fournisseur", "path": "checking-reply/checke replay.py"},
-        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul du nombre de cartons selon le type d article et le modele TV", "path": "Box-calculator/app.py"}
+        {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des indicateurs et KPIs fournisseur", "folder": "container-dashboard", "file": "code.py"},
+        {"name": "Comparateur BOM vs Packing", "icon": "📦", "desc": "Verification des quantites entre BOM et packing list", "folder": "comparator-bom_packing", "file": "app.py"},
+        {"name": "Comparateur BOM vs BOM", "icon": "🔄", "desc": "Analyse et comparaison des versions BOM", "folder": "comparator-bom_bom", "file": "bom_old and new.py"},
+        {"name": "Check Position", "icon": "📍", "desc": "Verification des positions et emplacements", "folder": "check_position", "file": "code.py"},
+        {"name": "Checking Reply", "icon": "✅", "desc": "Verification et analyse des reponses fournisseur", "folder": "checking-reply", "file": "checke replay.py"},
+        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul du nombre de cartons selon le type d article et le modele TV", "folder": "Box-calculator", "file": "app.py"}
     ]
     
     # Affichage en grille
@@ -181,8 +216,9 @@ def show_home():
                     st.markdown(f'<div class="feature-card"><div class="feature-icon">{tool["icon"]}</div><div class="feature-title">{tool["name"]}</div><div class="feature-desc">{tool["desc"]}</div></div>', unsafe_allow_html=True)
                     if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
                         st.session_state.page = 'tool'
-                        st.session_state.selected_tool = tool['name']
-                        st.session_state.tool_path = tool['path']
+                        st.session_state.selected_tool = tool["name"]
+                        st.session_state.tool_folder = tool["folder"]
+                        st.session_state.tool_file = tool["file"]
                         st.rerun()
     
     # Pied de page
@@ -190,7 +226,7 @@ def show_home():
 
 # ==================== CHARGEMENT DES OUTILS ====================
 
-def show_tool(tool_name, tool_path):
+def show_tool(tool_name, tool_folder, tool_file):
     # Bouton retour
     col1, col2, col3 = st.columns([1, 8, 1])
     with col1:
@@ -202,16 +238,16 @@ def show_tool(tool_name, tool_path):
     
     # Chargement
     with st.spinner(f"Chargement de {tool_name}..."):
-        success = load_tool_from_path(tool_path, tool_name)
+        success = load_tool_from_path(tool_name, tool_folder, tool_file)
         
         if not success:
             st.error(f"Impossible de charger {tool_name}")
-            st.info("Verifiez que le fichier existe bien")
+            st.info("Verifiez que le fichier existe bien dans le dossier correspondant")
 
 # ==================== ROUTAGE PRINCIPAL ====================
 
 if st.session_state.page == 'home':
     show_home()
 elif st.session_state.page == 'tool':
-    if st.session_state.selected_tool and st.session_state.tool_path:
-        show_tool(st.session_state.selected_tool, st.session_state.tool_path)
+    if st.session_state.selected_tool:
+        show_tool(st.session_state.selected_tool, st.session_state.tool_folder, st.session_state.tool_file)
