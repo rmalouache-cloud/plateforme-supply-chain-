@@ -1,7 +1,6 @@
 import streamlit as st
 import sys
 import os
-import subprocess
 import importlib.util
 
 # Configuration
@@ -110,12 +109,15 @@ if 'page' not in st.session_state:
     st.session_state.page = 'home'
 if 'selected_tool' not in st.session_state:
     st.session_state.selected_tool = None
+if 'tool_path' not in st.session_state:
+    st.session_state.tool_path = None
 
 # ==================== FONCTIONS ====================
 
 def go_home():
     st.session_state.page = 'home'
     st.session_state.selected_tool = None
+    st.session_state.tool_path = None
     st.rerun()
 
 def load_tool_from_path(tool_path, tool_name):
@@ -124,7 +126,6 @@ def load_tool_from_path(tool_path, tool_name):
         # Vérifier si le fichier existe
         if not os.path.exists(tool_path):
             st.error(f"❌ Fichier non trouvé: {tool_path}")
-            st.info(f"Veuillez vérifier que le dossier '{tool_name}' contient bien un fichier app.py ou main.py")
             return False
         
         # Ajouter le dossier parent au path
@@ -132,39 +133,17 @@ def load_tool_from_path(tool_path, tool_name):
         if tool_dir not in sys.path:
             sys.path.insert(0, tool_dir)
         
-        # Importer le module
-        module_name = os.path.splitext(os.path.basename(tool_path))[0]
-        spec = importlib.util.spec_from_file_location(module_name, tool_path)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        # Lire et exécuter le fichier
+        with open(tool_path, 'r', encoding='utf-8') as f:
+            code = f.read()
         
-        # Chercher la fonction main
-        if hasattr(module, 'main'):
-            module.main()
-        else:
-            # Si pas de main, exécuter le code directement
-            st.warning(f"Le fichier {tool_name} n'a pas de fonction main()")
-            st.code(open(tool_path).read())
-        
+        # Exécuter le code
+        exec(code, globals())
         return True
         
     except Exception as e:
         st.error(f"❌ Erreur lors du chargement de {tool_name}: {str(e)}")
         return False
-
-def run_streamlit_app(tool_path):
-    """Exécute une application Streamlit séparée"""
-    try:
-        # Lire le contenu du fichier et l'exécuter
-        with open(tool_path, 'r', encoding='utf-8') as f:
-            code = f.read()
-        
-        # Créer un namespace avec st déjà importé
-        namespace = {'st': st, '__name__': '__main__'}
-        exec(code, namespace)
-        
-    except Exception as e:
-        st.error(f"Erreur: {str(e)}")
 
 # ==================== PAGE D'ACCUEIL ====================
 
@@ -201,36 +180,31 @@ def show_home():
             "name": "Container Dashboard",
             "icon": "📊",
             "desc": "Tableau de bord des indicateurs et KPIs fournisseur",
-            "path": "container-dashboard/app.py",
-            "color": "#3b82f6"
+            "path": "container-dashboard/app.py"
         },
         {
             "name": "Comparateur BOM vs Packing",
             "icon": "📦",
             "desc": "Vérification des quantités entre BOM et packing list",
-            "path": "comparator-bom_packing/app.py",
-            "color": "#10b981"
+            "path": "comparator-bom_packing/app.py"
         },
         {
             "name": "Comparateur BOM vs BOM",
             "icon": "🔄",
             "desc": "Analyse et comparaison des versions BOM",
-            "path": "comparator-bom_bom/app.py",
-            "color": "#8b5cf6"
+            "path": "comparator-bom_bom/app.py"
         },
         {
             "name": "Check Position",
             "icon": "📍",
             "desc": "Vérification des positions et emplacements",
-            "path": "check_position/app.py",
-            "color": "#f59e0b"
+            "path": "check_position/app.py"
         },
         {
             "name": "Checking Reply",
             "icon": "✅",
             "desc": "Vérification et analyse des réponses fournisseur",
-            "path": "checking-reply/app.py",
-            "color": "#ef4444"
+            "path": "checking-reply/app.py"
         }
     ]
     
@@ -245,9 +219,9 @@ def show_home():
                     # Carte
                     st.markdown(f"""
                     <div class="feature-card">
-                        <div class="feature-icon">{tool['icon']}</div>
-                        <div class="feature-title">{tool['name']}</div>
-                        <div class="feature-desc">{tool['desc']}</div>
+                        <div class="feature-icon">{tool["icon"]}</div>
+                        <div class="feature-title">{tool["name"]}</div>
+                        <div class="feature-desc">{tool["desc"]}</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -293,7 +267,6 @@ def show_tool(tool_name, tool_path):
             st.info(f"""
             **Vérifications :**
             1. Le dossier `{tool_path.split('/')[0]}` existe-t-il ?
-            2. Contient-il un fichier `app.py` ou `main.py` ?
-            3. Le fichier a-t-il une fonction `main()` ?
+            2. Contient-il un fichier `app.py` ?
             
             **Structure attendue :**
