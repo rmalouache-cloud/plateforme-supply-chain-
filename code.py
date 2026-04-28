@@ -8,6 +8,11 @@ st.set_page_config(
     layout="wide"
 )
 
+# ==================== DÉTERMINER LE DOSSIER RACINE ====================
+# Notre fichier principal est dans container-dashboard, on remonte d'un niveau
+CURRENT_DIR = os.getcwd()
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
+
 # ==================== CSS ====================
 st.markdown("""
 <style>
@@ -19,14 +24,8 @@ st.markdown("""
         text-align: center;
         color: white;
     }
-    .hero h1 {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .hero p {
-        font-size: 1rem;
-        opacity: 0.9;
-    }
+    .hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    .hero p { font-size: 1rem; opacity: 0.9; }
     .feature-card {
         background: white;
         border-radius: 15px;
@@ -42,20 +41,9 @@ st.markdown("""
         box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
         border-color: #2a5298;
     }
-    .feature-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-    .feature-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1e3c72;
-        margin-bottom: 0.5rem;
-    }
-    .feature-desc {
-        font-size: 0.8rem;
-        color: #666;
-    }
+    .feature-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .feature-title { font-size: 1.1rem; font-weight: 600; color: #1e3c72; margin-bottom: 0.5rem; }
+    .feature-desc { font-size: 0.8rem; color: #666; }
     .footer {
         text-align: center;
         padding: 1.5rem;
@@ -79,11 +67,7 @@ st.markdown("""
         margin-bottom: 1rem;
         border-left: 4px solid #2a5298;
     }
-    .tool-header h2 {
-        margin: 0;
-        color: #1e3c72;
-        font-size: 1.3rem;
-    }
+    .tool-header h2 { margin: 0; color: #1e3c72; font-size: 1.3rem; }
     .about-section {
         background: #e8f0fe;
         padding: 1.5rem;
@@ -92,13 +76,15 @@ st.markdown("""
         color: #1a1a2e;
         border: 1px solid #c5d5e8;
     }
-    .about-section h3 {
-        color: #1e3c72;
-        margin-top: 0;
-    }
-    .about-section ul {
-        margin: 0.5rem 0;
-        padding-left: 1.5rem;
+    .about-section h3 { color: #1e3c72; margin-top: 0; }
+    .about-section ul { margin: 0.5rem 0; padding-left: 1.5rem; }
+    .debug-info {
+        background: #fef3c7;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-family: monospace;
+        font-size: 0.8rem;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -123,16 +109,27 @@ def go_home():
     st.rerun()
 
 def check_file_exists(folder, filename):
-    """Vérifie si un fichier existe"""
-    file_path = os.path.join(folder, filename)
-    return os.path.exists(file_path)
+    """Vérifie si un fichier existe dans le dossier racine"""
+    # Essayer plusieurs chemins possibles
+    paths = [
+        os.path.join(ROOT_DIR, folder, filename),  # plateforme-supply-chain-/dossier/fichier
+        os.path.join(CURRENT_DIR, folder, filename),  # container-dashboard/dossier/fichier (current)
+        os.path.join(CURRENT_DIR, "..", folder, filename),  # remonte d'un niveau
+        os.path.join("/mount/src/plateforme-supply-chain-", folder, filename),  # chemin absolu
+    ]
+    
+    for path in paths:
+        if os.path.exists(path):
+            return path
+    return None
 
 def load_tool(tool_name, folder, filename):
     """Charge un outil depuis son dossier"""
-    file_path = os.path.join(folder, filename)
+    file_path = check_file_exists(folder, filename)
     
-    if os.path.exists(file_path):
+    if file_path:
         try:
+            st.success(f"✅ Fichier trouvé: {file_path}")
             with open(file_path, 'r', encoding='utf-8') as f:
                 code = f.read()
             exec(code, globals())
@@ -141,18 +138,37 @@ def load_tool(tool_name, folder, filename):
             st.error(f"Erreur: {str(e)}")
             return False
     else:
-        st.error(f"Fichier non trouve: {file_path}")
+        st.error(f"❌ Fichier non trouve: {folder}/{filename}")
         return False
+
+def is_tool_available(folder, filename):
+    """Retourne True si l'outil est disponible"""
+    return check_file_exists(folder, filename) is not None
 
 # ==================== PAGE D'ACCUEIL ====================
 
 def show_home():
+    # Debug - afficher la structure (à supprimer quand ça marche)
+    with st.expander("🔧 Diagnostic (cliquez pour voir)"):
+        st.write(f"Dossier actuel (CURRENT_DIR): {CURRENT_DIR}")
+        st.write(f"Dossier racine (ROOT_DIR): {ROOT_DIR}")
+        st.write("Contenu du dossier racine:")
+        try:
+            for item in sorted(os.listdir(ROOT_DIR)):
+                if os.path.isdir(os.path.join(ROOT_DIR, item)):
+                    st.write(f"  📁 {item}/")
+                else:
+                    st.write(f"  📄 {item}")
+        except:
+            st.write("  Impossible de lire le dossier")
+    
     # En-tete avec logo
     col1, col2 = st.columns([1, 5])
     with col1:
-        try:
-            st.image("logo.jfif", width=80)
-        except:
+        logo_path = os.path.join(ROOT_DIR, "logo.jfif")
+        if os.path.exists(logo_path):
+            st.image(logo_path, width=80)
+        else:
             st.markdown("<h1 style='font-size: 3rem;'>🏭</h1>", unsafe_allow_html=True)
     
     with col2:
@@ -181,7 +197,7 @@ def show_home():
     
     st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
-    # Liste des outils avec vérification
+    # Liste des outils
     tools = [
         {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "folder": "container-dashboard", "file": "code.py"},
         {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
@@ -199,24 +215,22 @@ def show_home():
             if idx < len(tools):
                 tool = tools[idx]
                 with cols[j]:
-                    # Vérifier si l'outil est disponible
-                    file_exists = check_file_exists(tool['folder'], tool['file'])
+                    available = is_tool_available(tool['folder'], tool['file'])
                     
-                    # Afficher avec badge
-                    if file_exists:
-                        status_badge = ""
+                    if available:
+                        status = "✅"
                     else:
-                        status_badge = "<span style='color:red; font-size:0.7rem;'> ⚠️ manquant</span>"
+                        status = "❌"
                     
                     st.markdown(f"""
                     <div class="feature-card">
                         <div class="feature-icon">{tool['icon']}</div>
-                        <div class="feature-title">{tool['name']}{status_badge}</div>
+                        <div class="feature-title">{tool['name']} {status}</div>
                         <div class="feature-desc">{tool['desc']}</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    if file_exists:
+                    if available:
                         if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
                             st.session_state.page = 'tool'
                             st.session_state.selected_tool = tool['name']
@@ -224,12 +238,11 @@ def show_home():
                             st.session_state.tool_file = tool['file']
                             st.rerun()
                     else:
-                        st.button(f"❌ Fichier manquant", key=f"btn_disabled_{idx}", disabled=True, use_container_width=True)
+                        st.button(f"Fichier manquant", key=f"btn_disabled_{idx}", disabled=True, use_container_width=True)
     
     st.markdown("""
     <div class="footer">
         <p>© 2024 - Suite Outils Fournisseur | Version 2.0</p>
-        <p>💡 Les outils marqués en rouge sont manquants. Veuillez ajouter les fichiers correspondants.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -247,7 +260,7 @@ def show_tool():
     </div>
     """, unsafe_allow_html=True)
     
-    with st.spinner(f"Chargement en cours..."):
+    with st.spinner("Chargement en cours..."):
         success = load_tool(
             st.session_state.selected_tool,
             st.session_state.tool_folder,
@@ -256,12 +269,6 @@ def show_tool():
         
         if not success:
             st.error(f"Impossible de charger {st.session_state.selected_tool}")
-            st.info(f"""
-            **Pour corriger :**
-            1. Vérifiez que le dossier `{st.session_state.tool_folder}` existe
-            2. Vérifiez que le fichier `{st.session_state.tool_file}` est présent
-            3. Le chemin complet doit être : `{st.session_state.tool_folder}/{st.session_state.tool_file}`
-            """)
 
 # ==================== ROUTAGE ====================
 
