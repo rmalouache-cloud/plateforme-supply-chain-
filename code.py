@@ -100,9 +100,6 @@ st.markdown("""
         margin: 0.5rem 0;
         padding-left: 1.5rem;
     }
-    .about-section li {
-        margin: 0.3rem 0;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -124,6 +121,11 @@ def go_home():
     st.session_state.tool_folder = None
     st.session_state.tool_file = None
     st.rerun()
+
+def check_file_exists(folder, filename):
+    """Vérifie si un fichier existe"""
+    file_path = os.path.join(folder, filename)
+    return os.path.exists(file_path)
 
 def load_tool(tool_name, folder, filename):
     """Charge un outil depuis son dossier"""
@@ -179,7 +181,7 @@ def show_home():
     
     st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
-    # Liste des outils
+    # Liste des outils avec vérification
     tools = [
         {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "folder": "container-dashboard", "file": "code.py"},
         {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
@@ -197,23 +199,37 @@ def show_home():
             if idx < len(tools):
                 tool = tools[idx]
                 with cols[j]:
+                    # Vérifier si l'outil est disponible
+                    file_exists = check_file_exists(tool['folder'], tool['file'])
+                    
+                    # Afficher avec badge
+                    if file_exists:
+                        status_badge = ""
+                    else:
+                        status_badge = "<span style='color:red; font-size:0.7rem;'> ⚠️ manquant</span>"
+                    
                     st.markdown(f"""
                     <div class="feature-card">
                         <div class="feature-icon">{tool['icon']}</div>
-                        <div class="feature-title">{tool['name']}</div>
+                        <div class="feature-title">{tool['name']}{status_badge}</div>
                         <div class="feature-desc">{tool['desc']}</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
-                        st.session_state.page = 'tool'
-                        st.session_state.selected_tool = tool['name']
-                        st.session_state.tool_folder = tool['folder']
-                        st.session_state.tool_file = tool['file']
-                        st.rerun()
+                    
+                    if file_exists:
+                        if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
+                            st.session_state.page = 'tool'
+                            st.session_state.selected_tool = tool['name']
+                            st.session_state.tool_folder = tool['folder']
+                            st.session_state.tool_file = tool['file']
+                            st.rerun()
+                    else:
+                        st.button(f"❌ Fichier manquant", key=f"btn_disabled_{idx}", disabled=True, use_container_width=True)
     
     st.markdown("""
     <div class="footer">
         <p>© 2024 - Suite Outils Fournisseur | Version 2.0</p>
+        <p>💡 Les outils marqués en rouge sont manquants. Veuillez ajouter les fichiers correspondants.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -240,6 +256,12 @@ def show_tool():
         
         if not success:
             st.error(f"Impossible de charger {st.session_state.selected_tool}")
+            st.info(f"""
+            **Pour corriger :**
+            1. Vérifiez que le dossier `{st.session_state.tool_folder}` existe
+            2. Vérifiez que le fichier `{st.session_state.tool_file}` est présent
+            3. Le chemin complet doit être : `{st.session_state.tool_folder}/{st.session_state.tool_file}`
+            """)
 
 # ==================== ROUTAGE ====================
 
