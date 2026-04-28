@@ -4,4 +4,5 @@ openpyxl
 numpy
 matplotlib
 plotly
-xlrd
+xlrd 
+fpdf
