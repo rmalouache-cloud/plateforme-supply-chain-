@@ -1,7 +1,5 @@
 import streamlit as st
 import os
-import subprocess
-import sys
 
 # Configuration
 st.set_page_config(
@@ -38,7 +36,6 @@ st.markdown("""
         margin-bottom: 1rem;
         height: 100%;
         transition: all 0.3s ease;
-        cursor: pointer;
     }
     .feature-card:hover {
         transform: translateY(-5px);
@@ -118,6 +115,8 @@ if 'page' not in st.session_state:
     st.session_state.page = 'home'
 if 'selected_tool' not in st.session_state:
     st.session_state.selected_tool = None
+if 'tool_folder' not in st.session_state:
+    st.session_state.tool_folder = None
 if 'tool_file' not in st.session_state:
     st.session_state.tool_file = None
 
@@ -126,19 +125,18 @@ if 'tool_file' not in st.session_state:
 def go_home():
     st.session_state.page = 'home'
     st.session_state.selected_tool = None
+    st.session_state.tool_folder = None
     st.session_state.tool_file = None
     st.rerun()
 
 def load_tool(tool_name, folder, filename):
     """Charge un outil depuis son dossier"""
-    # Construire le chemin complet
     file_path = os.path.join(folder, filename)
     
     if os.path.exists(file_path):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 code = f.read()
-            # Exécuter le code
             exec(code, globals())
             return True
         except Exception as e:
@@ -151,7 +149,7 @@ def load_tool(tool_name, folder, filename):
 # ==================== PAGE D'ACCUEIL ====================
 
 def show_home():
-    # En-tête avec logo
+    # En-tete avec logo
     col1, col2 = st.columns([1, 5])
     with col1:
         try:
@@ -173,30 +171,29 @@ def show_home():
         <h3>🎯 A propos</h3>
         <p>Cette plateforme centralise tous vos outils de verification fournisseur :</p>
         <ul>
-            <li>📊 <strong>Container Dashboard</strong> - Tableau de bord des indicateurs et KPIs</li>
-            <li>📦 <strong>Comparateur BOM vs Packing</strong> - Verification des quantites entre BOM et packing list</li>
-            <li>🔄 <strong>Comparateur BOM vs BOM</strong> - Analyse et comparaison des versions BOM</li>
-            <li>📍 <strong>Check Position</strong> - Verification des positions et emplacements</li>
-            <li>✅ <strong>Checking Reply</strong> - Verification et analyse des reponses fournisseur</li>
-            <li>📐 <strong>Box Calculator</strong> - Calcul du nombre de cartons selon le type d article</li>
+            <li>📊 Container Dashboard - Tableau de bord des indicateurs</li>
+            <li>📦 Comparateur BOM vs Packing - Verification des quantites</li>
+            <li>🔄 Comparateur BOM vs BOM - Analyse des versions</li>
+            <li>📍 Check Position - Verification des positions</li>
+            <li>✅ Checking Reply - Analyse des reponses fournisseur</li>
+            <li>📐 Box Calculator - Calcul du nombre de cartons</li>
         </ul>
-        <p>Selectionnez l'outil ci-dessous pour commencer.</p>
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown('<h2 style="text-align: center; margin-bottom: 1.5rem;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
-    # Liste des outils avec les bons chemins
+    # Liste des outils
     tools = [
-        {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs fournisseur", "folder": "container-dashboard", "file": "code.py"},
-        {"name": "Comparateur BOM vs Packing", "icon": "📦", "desc": "Verification des quantites BOM / Packing list", "folder": "comparator-bom_packing", "file": "app.py"},
-        {"name": "Comparateur BOM vs BOM", "icon": "🔄", "desc": "Analyse et comparaison des versions BOM", "folder": "comparator-bom_bom", "file": "bom_old and new.py"},
-        {"name": "Check Position", "icon": "📍", "desc": "Verification des positions et emplacements", "folder": "check_position", "file": "code.py"},
-        {"name": "Checking Reply", "icon": "✅", "desc": "Verification et analyse des reponses fournisseur", "folder": "checking-reply", "file": "checke replay.py"},
-        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul du nombre de cartons", "folder": "Box-calculator", "file": "app.py"}
+        {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "folder": "container-dashboard", "file": "code.py"},
+        {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
+        {"name": "BOM vs BOM", "icon": "🔄", "desc": "Comparaison versions BOM", "folder": "comparator-bom_bom", "file": "bom_old and new.py"},
+        {"name": "Check Position", "icon": "📍", "desc": "Verification positions", "folder": "check_position", "file": "code.py"},
+        {"name": "Checking Reply", "icon": "✅", "desc": "Analyse reponses", "folder": "checking-reply", "file": "checke replay.py"},
+        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul cartons", "folder": "Box-calculator", "file": "app.py"}
     ]
     
-    # Affichage en grille (2 lignes de 3 colonnes)
+    # Affichage en grille
     for i in range(0, len(tools), 3):
         cols = st.columns(3)
         for j in range(3):
@@ -218,32 +215,27 @@ def show_home():
                         st.session_state.tool_file = tool['file']
                         st.rerun()
     
-    # Pied de page
     st.markdown("""
     <div class="footer">
         <p>© 2024 - Suite Outils Fournisseur | Version 2.0</p>
-        <p>Developpe pour les equipes ingenierie</p>
     </div>
     """, unsafe_allow_html=True)
 
 # ==================== CHARGEMENT DES OUTILS ====================
 
 def show_tool():
-    # Bouton retour
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("← Retour a l'accueil", use_container_width=True):
+        if st.button("← Retour a l accueil", use_container_width=True):
             go_home()
     
-    # En-tete
     st.markdown(f"""
     <div class="tool-header">
         <h2>🛠️ {st.session_state.selected_tool}</h2>
     </div>
     """, unsafe_allow_html=True)
     
-    # Chargement
-    with st.spinner(f"Chargement de {st.session_state.selected_tool}..."):
+    with st.spinner(f"Chargement en cours..."):
         success = load_tool(
             st.session_state.selected_tool,
             st.session_state.tool_folder,
@@ -252,6 +244,11 @@ def show_tool():
         
         if not success:
             st.error(f"Impossible de charger {st.session_state.selected_tool}")
-            st.info(f"""
-            **Verifiez que la structure est correcte :**
-            
+            st.info("Verifiez que le dossier existe bien")
+
+# ==================== ROUTAGE ====================
+
+if st.session_state.page == 'home':
+    show_home()
+elif st.session_state.page == 'tool':
+    show_tool()
