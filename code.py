@@ -1,18 +1,327 @@
 import streamlit as st
 import os
 
-# AFFICHAGE DE DIAGNOSTIC - À SUPPRIMER PLUS TARD
-st.write("=== DIAGNOSTIC ===")
-st.write(f"Dossier courant: {os.getcwd()}")
-st.write("Contenu du dossier courant:")
-for item in os.listdir('.'):
-    st.write(f"  - {item}")
-    if os.path.isdir(item):
-        try:
-            st.write(f"    Contenu de {item}:")
-            for subitem in os.listdir(item):
-                st.write(f"      - {subitem}")
-        except:
-            pass
+# Configuration
+st.set_page_config(
+    page_title="Suite Outils Fournisseur",
+    page_icon="🏭",
+    layout="wide"
+)
 
-# ... reste de votre code
+# ==================== CSS ====================
+st.markdown("""
+<style>
+    .hero {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        text-align: center;
+        color: white;
+    }
+    .hero h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .hero p {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 1px solid #e0e0e0;
+        text-align: center;
+        margin-bottom: 1rem;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+        border-color: #2a5298;
+    }
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .feature-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e3c72;
+        margin-bottom: 0.5rem;
+    }
+    .feature-desc {
+        font-size: 0.8rem;
+        color: #666;
+    }
+    .footer {
+        text-align: center;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        border-top: 1px solid #e0e0e0;
+        color: #666;
+    }
+    .stButton > button {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        border: none;
+        padding: 0.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        width: 100%;
+    }
+    .tool-header {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        border-left: 4px solid #2a5298;
+    }
+    .tool-header h2 {
+        margin: 0;
+        color: #1e3c72;
+        font-size: 1.3rem;
+    }
+    .about-section {
+        background: #e8f0fe;
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        color: #1a1a2e;
+        border: 1px solid #c5d5e8;
+    }
+    .about-section h3 {
+        color: #1e3c72;
+        margin-top: 0;
+    }
+    .about-section ul {
+        margin: 0.5rem 0;
+        padding-left: 1.5rem;
+    }
+    .about-section li {
+        margin: 0.3rem 0;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# ==================== SESSION STATE ====================
+if 'page' not in st.session_state:
+    st.session_state.page = 'home'
+if 'selected_tool' not in st.session_state:
+    st.session_state.selected_tool = None
+if 'tool_folder' not in st.session_state:
+    st.session_state.tool_folder = None
+if 'tool_file' not in st.session_state:
+    st.session_state.tool_file = None
+
+# ==================== FONCTIONS ====================
+
+def go_home():
+    st.session_state.page = 'home'
+    st.session_state.selected_tool = None
+    st.session_state.tool_folder = None
+    st.session_state.tool_file = None
+    st.rerun()
+
+def check_folder_structure():
+    """Vérifie la structure des dossiers et retourne les outils disponibles"""
+    dossiers_attendus = [
+        "container-dashboard",
+        "comparator-bom_packing", 
+        "comparator-bom_bom",
+        "check_position",
+        "checking-reply",
+        "Box-calculator"
+    ]
+    
+    outils_disponibles = []
+    for dossier in dossiers_attendus:
+        if os.path.exists(dossier) and os.path.isdir(dossier):
+            # Vérifier si le dossier contient un fichier
+            if dossier == "container-dashboard":
+                if os.path.exists(os.path.join(dossier, "code.py")):
+                    outils_disponibles.append(dossier)
+            elif dossier == "comparator-bom_packing":
+                if os.path.exists(os.path.join(dossier, "app.py")):
+                    outils_disponibles.append(dossier)
+            elif dossier == "comparator-bom_bom":
+                if os.path.exists(os.path.join(dossier, "bom_old and new.py")):
+                    outils_disponibles.append(dossier)
+            elif dossier == "check_position":
+                if os.path.exists(os.path.join(dossier, "code.py")):
+                    outils_disponibles.append(dossier)
+            elif dossier == "checking-reply":
+                if os.path.exists(os.path.join(dossier, "checke replay.py")):
+                    outils_disponibles.append(dossier)
+            elif dossier == "Box-calculator":
+                if os.path.exists(os.path.join(dossier, "app.py")):
+                    outils_disponibles.append(dossier)
+    
+    return outils_disponibles
+
+def load_tool(tool_name, folder, filename):
+    """Charge un outil depuis son dossier"""
+    file_path = os.path.join(folder, filename)
+    
+    if os.path.exists(file_path):
+        try:
+            # Changer le répertoire de travail
+            original_dir = os.getcwd()
+            os.chdir(folder)
+            
+            with open(file_path, 'r', encoding='utf-8') as f:
+                code = f.read()
+            exec(code, globals())
+            
+            os.chdir(original_dir)
+            return True
+        except Exception as e:
+            st.error(f"Erreur: {str(e)}")
+            return False
+    else:
+        st.error(f"Fichier non trouve: {file_path}")
+        return False
+
+# ==================== PAGE D'ACCUEIL ====================
+
+def show_home():
+    # En-tete avec logo
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        try:
+            if os.path.exists("logo.jfif"):
+                st.image("logo.jfif", width=80)
+            else:
+                st.markdown("<h1 style='font-size: 3rem;'>🏭</h1>", unsafe_allow_html=True)
+        except:
+            st.markdown("<h1 style='font-size: 3rem;'>🏭</h1>", unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class="hero">
+            <h1>Suite Outils Fournisseur</h1>
+            <p>Plateforme integree pour la verification des documents d expedition</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Vérifier la structure
+    outils_disponibles = check_folder_structure()
+    
+    if not outils_disponibles:
+        st.warning("""
+        ⚠️ **Aucun outil trouve**
+        
+        Veuillez ajouter les dossiers suivants avec leurs fichiers :
+        - container-dashboard/code.py
+        - comparator-bom_packing/app.py
+        - comparator-bom_bom/bom_old and new.py
+        - check_position/code.py
+        - checking-reply/checke replay.py
+        - Box-calculator/app.py
+        """)
+    
+    # Présentation
+    st.markdown("""
+    <div class="about-section">
+        <h3>🎯 A propos</h3>
+        <p>Cette plateforme centralise tous vos outils de verification fournisseur :</p>
+        <ul>
+            <li>📊 Container Dashboard - Tableau de bord des indicateurs</li>
+            <li>📦 Comparateur BOM vs Packing - Verification des quantites</li>
+            <li>🔄 Comparateur BOM vs BOM - Analyse des versions</li>
+            <li>📍 Check Position - Verification des positions</li>
+            <li>✅ Checking Reply - Analyse des reponses fournisseur</li>
+            <li>📐 Box Calculator - Calcul du nombre de cartons</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
+    
+    # Liste des outils (seulement ceux qui existent)
+    all_tools = [
+        {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "folder": "container-dashboard", "file": "code.py"},
+        {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
+        {"name": "BOM vs BOM", "icon": "🔄", "desc": "Comparaison versions BOM", "folder": "comparator-bom_bom", "file": "bom_old and new.py"},
+        {"name": "Check Position", "icon": "📍", "desc": "Verification positions", "folder": "check_position", "file": "code.py"},
+        {"name": "Checking Reply", "icon": "✅", "desc": "Analyse reponses", "folder": "checking-reply", "file": "checke replay.py"},
+        {"name": "Box Calculator", "icon": "📐", "desc": "Calcul cartons", "folder": "Box-calculator", "file": "app.py"}
+    ]
+    
+    # Filtrer les outils disponibles
+    tools_to_show = []
+    for tool in all_tools:
+        if tool["folder"] in outils_disponibles:
+            tools_to_show.append(tool)
+        else:
+            # Marquer comme indisponible
+            tool["disabled"] = True
+            tools_to_show.append(tool)
+    
+    # Affichage en grille
+    for i in range(0, len(tools_to_show), 3):
+        cols = st.columns(3)
+        for j in range(3):
+            idx = i + j
+            if idx < len(tools_to_show):
+                tool = tools_to_show[idx]
+                with cols[j]:
+                    st.markdown(f"""
+                    <div class="feature-card">
+                        <div class="feature-icon">{tool['icon']}</div>
+                        <div class="feature-title">{tool['name']}</div>
+                        <div class="feature-desc">{tool['desc']}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if tool.get("disabled", False):
+                        st.button(f"❌ Indisponible", key=f"btn_disabled_{idx}", disabled=True, use_container_width=True)
+                    else:
+                        button_key = f"btn_{idx}_{tool['name'].replace(' ', '_')}"
+                        if st.button(f"Lancer {tool['name']}", key=button_key, use_container_width=True):
+                            st.session_state.page = 'tool'
+                            st.session_state.selected_tool = tool['name']
+                            st.session_state.tool_folder = tool['folder']
+                            st.session_state.tool_file = tool['file']
+                            st.rerun()
+    
+    st.markdown("""
+    <div class="footer">
+        <p>© 2024 - Suite Outils Fournisseur | Version 2.0</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# ==================== CHARGEMENT DES OUTILS ====================
+
+def show_tool():
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        import time
+        back_key = f"back_home_{int(time.time())}"
+        if st.button("← Retour a l accueil", key=back_key, use_container_width=True):
+            go_home()
+    
+    st.markdown(f"""
+    <div class="tool-header">
+        <h2>🛠️ {st.session_state.selected_tool}</h2>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    with st.spinner(f"Chargement en cours..."):
+        success = load_tool(
+            st.session_state.selected_tool,
+            st.session_state.tool_folder,
+            st.session_state.tool_file
+        )
+        
+        if not success:
+            st.error(f"Impossible de charger {st.session_state.selected_tool}")
+
+# ==================== ROUTAGE ====================
+
+if st.session_state.page == 'home':
+    show_home()
+elif st.session_state.page == 'tool':
+    show_tool()
