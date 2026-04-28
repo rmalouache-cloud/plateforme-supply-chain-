@@ -9,8 +9,9 @@ st.set_page_config(
 )
 
 # ==================== DÉTERMINER LE DOSSIER RACINE ====================
-# On remonte d'un niveau car on est dans container-dashboard
-ROOT_DIR = os.path.dirname(os.getcwd())
+# Notre fichier principal est dans container-dashboard, on remonte d'un niveau
+CURRENT_DIR = os.getcwd()
+ROOT_DIR = os.path.dirname(CURRENT_DIR)
 
 # ==================== CSS ====================
 st.markdown("""
@@ -77,6 +78,14 @@ st.markdown("""
     }
     .about-section h3 { color: #1e3c72; margin-top: 0; }
     .about-section ul { margin: 0.5rem 0; padding-left: 1.5rem; }
+    .debug-info {
+        background: #fef3c7;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        font-family: monospace;
+        font-size: 0.8rem;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -101,37 +110,57 @@ def go_home():
 
 def check_file_exists(folder, filename):
     """Vérifie si un fichier existe dans le dossier racine"""
-    file_path = os.path.join(ROOT_DIR, folder, filename)
-    return os.path.exists(file_path)
+    # Essayer plusieurs chemins possibles
+    paths = [
+        os.path.join(ROOT_DIR, folder, filename),  # plateforme-supply-chain-/dossier/fichier
+        os.path.join(CURRENT_DIR, folder, filename),  # container-dashboard/dossier/fichier (current)
+        os.path.join(CURRENT_DIR, "..", folder, filename),  # remonte d'un niveau
+        os.path.join("/mount/src/plateforme-supply-chain-", folder, filename),  # chemin absolu
+    ]
+    
+    for path in paths:
+        if os.path.exists(path):
+            return path
+    return None
 
 def load_tool(tool_name, folder, filename):
     """Charge un outil depuis son dossier"""
-    file_path = os.path.join(ROOT_DIR, folder, filename)
+    file_path = check_file_exists(folder, filename)
     
-    if os.path.exists(file_path):
+    if file_path:
         try:
-            # Changer vers le dossier racine
-            original_dir = os.getcwd()
-            os.chdir(ROOT_DIR)
-            
+            st.success(f"✅ Fichier trouvé: {file_path}")
             with open(file_path, 'r', encoding='utf-8') as f:
                 code = f.read()
             exec(code, globals())
-            
-            os.chdir(original_dir)
             return True
         except Exception as e:
             st.error(f"Erreur: {str(e)}")
             return False
     else:
-        st.error(f"Fichier non trouve: {file_path}")
+        st.error(f"❌ Fichier non trouve: {folder}/{filename}")
         return False
+
+def is_tool_available(folder, filename):
+    """Retourne True si l'outil est disponible"""
+    return check_file_exists(folder, filename) is not None
 
 # ==================== PAGE D'ACCUEIL ====================
 
 def show_home():
-    # Vérifier si on est dans le bon dossier
-    st.write(f"📁 Dossier racine: {ROOT_DIR}")
+    # Debug - afficher la structure (à supprimer quand ça marche)
+    with st.expander("🔧 Diagnostic (cliquez pour voir)"):
+        st.write(f"Dossier actuel (CURRENT_DIR): {CURRENT_DIR}")
+        st.write(f"Dossier racine (ROOT_DIR): {ROOT_DIR}")
+        st.write("Contenu du dossier racine:")
+        try:
+            for item in sorted(os.listdir(ROOT_DIR)):
+                if os.path.isdir(os.path.join(ROOT_DIR, item)):
+                    st.write(f"  📁 {item}/")
+                else:
+                    st.write(f"  📄 {item}")
+        except:
+            st.write("  Impossible de lire le dossier")
     
     # En-tete avec logo
     col1, col2 = st.columns([1, 5])
@@ -186,22 +215,22 @@ def show_home():
             if idx < len(tools):
                 tool = tools[idx]
                 with cols[j]:
-                    file_exists = check_file_exists(tool['folder'], tool['file'])
+                    available = is_tool_available(tool['folder'], tool['file'])
                     
-                    if file_exists:
-                        status = ""
+                    if available:
+                        status = "✅"
                     else:
-                        status = "<span style='color:#ef4444; font-size:0.7rem;'> ⚠️ manquant</span>"
+                        status = "❌"
                     
                     st.markdown(f"""
                     <div class="feature-card">
                         <div class="feature-icon">{tool['icon']}</div>
-                        <div class="feature-title">{tool['name']}{status}</div>
+                        <div class="feature-title">{tool['name']} {status}</div>
                         <div class="feature-desc">{tool['desc']}</div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    if file_exists:
+                    if available:
                         if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
                             st.session_state.page = 'tool'
                             st.session_state.selected_tool = tool['name']
@@ -209,7 +238,7 @@ def show_home():
                             st.session_state.tool_file = tool['file']
                             st.rerun()
                     else:
-                        st.button(f"❌ Fichier manquant", key=f"btn_disabled_{idx}", disabled=True, use_container_width=True)
+                        st.button(f"Fichier manquant", key=f"btn_disabled_{idx}", disabled=True, use_container_width=True)
     
     st.markdown("""
     <div class="footer">
