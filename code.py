@@ -182,8 +182,8 @@ def show_home():
     # En-tete avec logo intégré dans le titre
     st.markdown("""
     <div class="hero">
-        <h1>🏭 Suite Outils Fournisseur</h1>
-        <p>Plateforme integree pour la verification des documents d expedition</p>
+        <h1>🏭 Supply Chain Tools Suite </h1>
+        <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l’analyse de la chaîne d’approvisionnement, de la BOM à l’expédition.</p>
     </div>
     """, unsafe_allow_html=True)
     
