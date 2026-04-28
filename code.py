@@ -125,57 +125,15 @@ def go_home():
     st.session_state.tool_file = None
     st.rerun()
 
-def check_folder_structure():
-    """Vérifie la structure des dossiers et retourne les outils disponibles"""
-    dossiers_attendus = [
-        "container-dashboard",
-        "comparator-bom_packing", 
-        "comparator-bom_bom",
-        "check_position",
-        "checking-reply",
-        "Box-calculator"
-    ]
-    
-    outils_disponibles = []
-    for dossier in dossiers_attendus:
-        if os.path.exists(dossier) and os.path.isdir(dossier):
-            # Vérifier si le dossier contient un fichier
-            if dossier == "container-dashboard":
-                if os.path.exists(os.path.join(dossier, "code.py")):
-                    outils_disponibles.append(dossier)
-            elif dossier == "comparator-bom_packing":
-                if os.path.exists(os.path.join(dossier, "app.py")):
-                    outils_disponibles.append(dossier)
-            elif dossier == "comparator-bom_bom":
-                if os.path.exists(os.path.join(dossier, "bom_old and new.py")):
-                    outils_disponibles.append(dossier)
-            elif dossier == "check_position":
-                if os.path.exists(os.path.join(dossier, "code.py")):
-                    outils_disponibles.append(dossier)
-            elif dossier == "checking-reply":
-                if os.path.exists(os.path.join(dossier, "checke replay.py")):
-                    outils_disponibles.append(dossier)
-            elif dossier == "Box-calculator":
-                if os.path.exists(os.path.join(dossier, "app.py")):
-                    outils_disponibles.append(dossier)
-    
-    return outils_disponibles
-
 def load_tool(tool_name, folder, filename):
     """Charge un outil depuis son dossier"""
     file_path = os.path.join(folder, filename)
     
     if os.path.exists(file_path):
         try:
-            # Changer le répertoire de travail
-            original_dir = os.getcwd()
-            os.chdir(folder)
-            
             with open(file_path, 'r', encoding='utf-8') as f:
                 code = f.read()
             exec(code, globals())
-            
-            os.chdir(original_dir)
             return True
         except Exception as e:
             st.error(f"Erreur: {str(e)}")
@@ -191,10 +149,7 @@ def show_home():
     col1, col2 = st.columns([1, 5])
     with col1:
         try:
-            if os.path.exists("logo.jfif"):
-                st.image("logo.jfif", width=80)
-            else:
-                st.markdown("<h1 style='font-size: 3rem;'>🏭</h1>", unsafe_allow_html=True)
+            st.image("logo.jfif", width=80)
         except:
             st.markdown("<h1 style='font-size: 3rem;'>🏭</h1>", unsafe_allow_html=True)
     
@@ -205,22 +160,6 @@ def show_home():
             <p>Plateforme integree pour la verification des documents d expedition</p>
         </div>
         """, unsafe_allow_html=True)
-    
-    # Vérifier la structure
-    outils_disponibles = check_folder_structure()
-    
-    if not outils_disponibles:
-        st.warning("""
-        ⚠️ **Aucun outil trouve**
-        
-        Veuillez ajouter les dossiers suivants avec leurs fichiers :
-        - container-dashboard/code.py
-        - comparator-bom_packing/app.py
-        - comparator-bom_bom/bom_old and new.py
-        - check_position/code.py
-        - checking-reply/checke replay.py
-        - Box-calculator/app.py
-        """)
     
     # Présentation
     st.markdown("""
@@ -240,8 +179,8 @@ def show_home():
     
     st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
-    # Liste des outils (seulement ceux qui existent)
-    all_tools = [
+    # Liste des outils
+    tools = [
         {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "folder": "container-dashboard", "file": "code.py"},
         {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
         {"name": "BOM vs BOM", "icon": "🔄", "desc": "Comparaison versions BOM", "folder": "comparator-bom_bom", "file": "bom_old and new.py"},
@@ -250,23 +189,13 @@ def show_home():
         {"name": "Box Calculator", "icon": "📐", "desc": "Calcul cartons", "folder": "Box-calculator", "file": "app.py"}
     ]
     
-    # Filtrer les outils disponibles
-    tools_to_show = []
-    for tool in all_tools:
-        if tool["folder"] in outils_disponibles:
-            tools_to_show.append(tool)
-        else:
-            # Marquer comme indisponible
-            tool["disabled"] = True
-            tools_to_show.append(tool)
-    
     # Affichage en grille
-    for i in range(0, len(tools_to_show), 3):
+    for i in range(0, len(tools), 3):
         cols = st.columns(3)
         for j in range(3):
             idx = i + j
-            if idx < len(tools_to_show):
-                tool = tools_to_show[idx]
+            if idx < len(tools):
+                tool = tools[idx]
                 with cols[j]:
                     st.markdown(f"""
                     <div class="feature-card">
@@ -275,17 +204,12 @@ def show_home():
                         <div class="feature-desc">{tool['desc']}</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    
-                    if tool.get("disabled", False):
-                        st.button(f"❌ Indisponible", key=f"btn_disabled_{idx}", disabled=True, use_container_width=True)
-                    else:
-                        button_key = f"btn_{idx}_{tool['name'].replace(' ', '_')}"
-                        if st.button(f"Lancer {tool['name']}", key=button_key, use_container_width=True):
-                            st.session_state.page = 'tool'
-                            st.session_state.selected_tool = tool['name']
-                            st.session_state.tool_folder = tool['folder']
-                            st.session_state.tool_file = tool['file']
-                            st.rerun()
+                    if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
+                        st.session_state.page = 'tool'
+                        st.session_state.selected_tool = tool['name']
+                        st.session_state.tool_folder = tool['folder']
+                        st.session_state.tool_file = tool['file']
+                        st.rerun()
     
     st.markdown("""
     <div class="footer">
@@ -298,9 +222,7 @@ def show_home():
 def show_tool():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        import time
-        back_key = f"back_home_{int(time.time())}"
-        if st.button("← Retour a l accueil", key=back_key, use_container_width=True):
+        if st.button("← Retour a l accueil", key="back_btn", use_container_width=True):
             go_home()
     
     st.markdown(f"""
