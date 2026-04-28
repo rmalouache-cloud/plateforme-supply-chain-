@@ -1,5 +1,7 @@
 import streamlit as st
 import os
+import subprocess
+import sys
 
 # Configuration
 st.set_page_config(
@@ -129,6 +131,44 @@ def go_home():
     st.session_state.tool_file = None
     st.rerun()
 
+def load_tool_via_subprocess(folder, filename):
+    """Charge un outil en utilisant subprocess pour éviter les conflits de boutons"""
+    file_path = os.path.join(folder, filename)
+    
+    if os.path.exists(file_path):
+        try:
+            # Lire et modifier le code pour ajouter des clés uniques
+            with open(file_path, 'r', encoding='utf-8') as f:
+                code = f.read()
+            
+            # Modifier le code pour ajouter des clés uniques aux boutons
+            import re
+            # Remplacer st.button(...) par st.button(..., key=unique_id)
+            lines = code.split('\n')
+            new_lines = []
+            button_counter = 0
+            
+            for line in lines:
+                if 'st.button' in line and 'key=' not in line:
+                    button_counter += 1
+                    # Ajouter une clé unique
+                    new_line = line.replace('st.button(', f'st.button(key="btn_{folder}_{button_counter}", ')
+                    new_lines.append(new_line)
+                else:
+                    new_lines.append(line)
+            
+            modified_code = '\n'.join(new_lines)
+            
+            # Exécuter le code modifié
+            exec(modified_code, globals())
+            return True
+        except Exception as e:
+            st.error(f"Erreur: {str(e)}")
+            return False
+    else:
+        st.error(f"Fichier non trouve: {file_path}")
+        return False
+
 def load_tool(tool_name, folder, filename):
     """Charge un outil depuis son dossier"""
     file_path = os.path.join(folder, filename)
@@ -137,10 +177,47 @@ def load_tool(tool_name, folder, filename):
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 code = f.read()
-            exec(code, globals())
+            
+            # Modifier automatiquement les boutons sans clé
+            import re
+            import uuid
+            
+            def add_key_to_buttons(code):
+                # Trouver tous les st.button sans key
+                pattern = r'st\.button\((.*?)(?=,?\s*key=|\n|\))'
+                
+                def replace_button(match):
+                    nonlocal counter
+                    counter += 1
+                    return f'st.button(key="btn_{counter}_{uuid.uuid4().hex[:6]}", ' + match.group(1)
+                
+                counter = 0
+                lines = code.split('\n')
+                new_lines = []
+                
+                for line in lines:
+                    if 'st.button' in line and 'key=' not in line:
+                        # Remplacer le bouton
+                        if 'st.button(' in line:
+                            # Extraire le texte du bouton
+                            new_line = line.replace('st.button(', f'st.button(key="auto_key_{folder}_{counter}", ')
+                            new_lines.append(new_line)
+                            counter += 1
+                        else:
+                            new_lines.append(line)
+                    else:
+                        new_lines.append(line)
+                
+                return '\n'.join(new_lines)
+            
+            # Modifier le code
+            modified_code = add_key_to_buttons(code)
+            
+            # Exécuter le code modifié
+            exec(modified_code, globals())
             return True
         except Exception as e:
-            st.error(f"Erreur d execution: {str(e)}")
+            st.error(f"Erreur: {str(e)}")
             return False
     else:
         st.error(f"Fichier non trouve: {file_path}")
@@ -178,6 +255,7 @@ def show_home():
             <li>✅ Checking Reply - Analyse des reponses fournisseur</li>
             <li>📐 Box Calculator - Calcul du nombre de cartons</li>
         </ul>
+        <p>Selectionnez l'outil ci-dessous pour commencer.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -208,7 +286,7 @@ def show_home():
                         <div class="feature-desc">{tool['desc']}</div>
                     </div>
                     """, unsafe_allow_html=True)
-                    if st.button(f"Lancer {tool['name']}", key=f"btn_{idx}", use_container_width=True):
+                    if st.button(f"Lancer {tool['name']}", key=f"btn_main_{idx}", use_container_width=True):
                         st.session_state.page = 'tool'
                         st.session_state.selected_tool = tool['name']
                         st.session_state.tool_folder = tool['folder']
@@ -226,7 +304,7 @@ def show_home():
 def show_tool():
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("← Retour a l accueil", use_container_width=True):
+        if st.button("← Retour a l accueil", key="btn_back_main", use_container_width=True):
             go_home()
     
     st.markdown(f"""
