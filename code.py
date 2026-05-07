@@ -96,6 +96,32 @@ st.markdown("""
         box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
         border-color: #2a5298;
     }
+    /* Style pour la carte active (après clic) */
+    .feature-card-active {
+        background: linear-gradient(135deg, #e8f0fe 0%, #d0e0f5 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        border: 2px solid #2a5298;
+        text-align: center;
+        margin-bottom: 1rem;
+        height: 100%;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(42,82,152,0.2);
+    }
+    .feature-card-active .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    .feature-card-active .feature-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1e3c72;
+        margin-bottom: 0.5rem;
+    }
+    .feature-card-active .feature-desc {
+        font-size: 0.8rem;
+        color: #4a5568;
+    }
     .feature-icon {
         font-size: 3rem;
         margin-bottom: 1rem;
@@ -125,6 +151,9 @@ st.markdown("""
         border-radius: 8px;
         font-weight: 500;
         width: 100%;
+    }
+    .stButton > button:active {
+        background: linear-gradient(135deg, #0f2a4a 0%, #1a3a6a 100%);
     }
     .tool-header {
         background: #f8f9fa;
@@ -161,6 +190,10 @@ st.markdown("""
         margin: 0.5rem 0;
         padding-left: 1.5rem;
     }
+    .disabled-btn {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -175,6 +208,8 @@ if 'tool_file' not in st.session_state:
     st.session_state.tool_file = None
 if 'tool_icon' not in st.session_state:
     st.session_state.tool_icon = None
+if 'active_card' not in st.session_state:
+    st.session_state.active_card = None
 
 # ==================== FONCTIONS ====================
 
@@ -184,6 +219,7 @@ def go_home():
     st.session_state.tool_folder = None
     st.session_state.tool_file = None
     st.session_state.tool_icon = None
+    st.session_state.active_card = None
     st.rerun()
 
 def check_file_exists(folder, filename):
@@ -284,8 +320,12 @@ def show_home():
                     available = is_tool_available(tool['folder'], tool['file'])
                     btn_disabled = not available
                     
+                    # Vérifier si cette carte est active
+                    is_active = (st.session_state.active_card == tool['name'])
+                    card_class = "feature-card-active" if is_active else "feature-card"
+                    
                     st.markdown(f"""
-                    <div class="feature-card">
+                    <div class="{card_class}">
                         <div class="feature-icon">{tool['icon']}</div>
                         <div class="feature-title">{tool['name']}</div>
                         <div class="feature-desc">{tool['desc']}</div>
@@ -294,6 +334,7 @@ def show_home():
                     
                     btn_key = f"btn_{idx}_{tool['name'].replace(' ', '_')}"
                     if st.button(f"Lancer {tool['name']}", key=btn_key, disabled=btn_disabled, use_container_width=True):
+                        st.session_state.active_card = tool['name']
                         st.session_state.page = 'tool'
                         st.session_state.selected_tool = tool['name']
                         st.session_state.tool_folder = tool['folder']
