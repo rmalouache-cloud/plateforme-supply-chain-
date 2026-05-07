@@ -33,7 +33,6 @@ def get_text(lang):
     texts = {
         'fr': {
             'title': "Tableau de Bord Industriel - Remplissage Conteneur",
-            'subtitle': "Analyse Supply Chain - Contrôle BOM & Emballage",
             'user_guide': "Manuel d'utilisation",
             'guide_content': """
             ### Instructions d'utilisation
@@ -90,7 +89,6 @@ def get_text(lang):
         },
         'en': {
             'title': "Container Filling Industrial Dashboard",
-            
             'user_guide': "User Guide",
             'guide_content': """
             ### Instructions
@@ -415,12 +413,12 @@ def display_header(lang='en'):
             st.image(container_logo, width=150)
         with col2:
             st.title(texts['title'])
-            st.caption(texts['subtitle'])
+            # Suppression du subtitle
         with col3:
             st.image(stream_logo, width=150)
     except FileNotFoundError:
         st.title(texts['title'])
-        st.caption(texts['subtitle'])
+        # Suppression du subtitle
 
 # =========================
 # GUIDE UTILISATEUR
@@ -443,7 +441,7 @@ def main():
         language = st.radio(
             "",
             options=['Francais', 'English'],
-            index=1
+            index=0
         )
         lang = 'fr' if 'Francais' in language else 'en'
         st.markdown("---")
