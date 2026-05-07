@@ -197,7 +197,7 @@ def show_home():
     if os.path.exists(logo_path):
         col_logo, col_title = st.columns([1, 5])
         with col_logo:
-            st.image(logo_path, width=70)
+            st.image(logo_path, width=150)
         with col_title:
             st.markdown("""
             <div class="hero" style="display: block; text-align: center;">
