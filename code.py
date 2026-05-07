@@ -69,14 +69,6 @@ st.markdown("""
         opacity: 0.9;
         margin-bottom: 0;
     }
-    .hero-logo {
-        margin-bottom: 0.5rem;
-    }
-    .hero-logo img {
-        width: 70px;
-        height: auto;
-        border-radius: 10px;
-    }
     .feature-card {
         background: white;
         border-radius: 15px;
@@ -211,17 +203,12 @@ def show_home():
     # Chercher le logo
     logo_path = find_logo()
     
-    # En-tete avec logo au-dessus du titre (centré)
+    # En-tete avec tout à l'intérieur du cadre bleu
     st.markdown('<div class="hero">', unsafe_allow_html=True)
     
-    # Logo centré
+    # Logo centré (un seul affichage)
     if logo_path and os.path.exists(logo_path):
-        st.markdown(f'''
-        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem;">
-            <img src="data:image/jfif;base64,{st.image(logo_path, width=70)}" style="width: 70px; border-radius: 10px;">
-        </div>
-        ''', unsafe_allow_html=True)
-        # Afficher le logo avec st.image
+        # Centrer le logo avec des colonnes
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
             st.image(logo_path, width=70)
@@ -230,8 +217,9 @@ def show_home():
     st.markdown("""
         <h1>🏭 Supply Chain Tools Suite</h1>
         <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
-    </div>
     """, unsafe_allow_html=True)
+    
+    st.markdown('</div>', unsafe_allow_html=True)
     
     # Espace avant la section À propos
     st.markdown("<br>", unsafe_allow_html=True)
