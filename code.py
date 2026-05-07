@@ -72,6 +72,20 @@ st.markdown("""
         display: flex;
         justify-content: center;
         margin-bottom: 1.5rem;
+        width: 100%;
+    }
+    .logo-container img {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 20px;
+        object-fit: cover;
+    }
+    /* Conteneur pour le logo avec la même largeur que le cadre bleu */
+    .logo-wrapper {
+        background: transparent;
+        border-radius: 20px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
     }
     .feature-card {
         background: white;
@@ -207,16 +221,17 @@ def show_home():
     # Chercher le logo
     logo_path = find_logo()
     
-    # Logo seul (hors cadre bleu)
+    # Logo avec la même largeur que le cadre bleu
     if logo_path and os.path.exists(logo_path):
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.image(logo_path, width=80)
+        # Utiliser st.image avec use_container_width=True
+        st.image(logo_path, use_container_width=True)
+        st.markdown("<br>", unsafe_allow_html=True)
     else:
-        # Si pas de logo, afficher une icône
+        # Si pas de logo, afficher une icône centrée
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.markdown("<h1 style='text-align: center; font-size: 3rem;'>🏭</h1>", unsafe_allow_html=True)
+            st.markdown("<h1 style='text-align: center; font-size: 4rem;'>🏭</h1>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
     
     # Cadre bleu avec titre et description
     st.markdown("""
