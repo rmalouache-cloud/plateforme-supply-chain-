@@ -35,14 +35,12 @@ def find_logo():
     """Cherche le logo dans plusieurs emplacements possibles"""
     logo_filename = "logo.jfif"
     
-    # Liste des chemins possibles
     paths_to_check = [
-        os.path.join(ROOT_DIR, logo_filename),           # plateforme-supply-chain-/logo.jfif
-        os.path.join(CURRENT_DIR, logo_filename),        # container-dashboard/logo.jfif
-        os.path.join(CURRENT_DIR, "..", logo_filename),  # dossier parent
-        os.path.join("/mount/src/plateforme-supply-chain-", logo_filename),  # chemin absolu Streamlit
-        os.path.join("/mount/src/plateforme-supply-chain-/container-dashboard", logo_filename),
-        logo_filename,  # fichier dans le dossier courant
+        os.path.join(ROOT_DIR, logo_filename),
+        os.path.join(CURRENT_DIR, logo_filename),
+        os.path.join(CURRENT_DIR, "..", logo_filename),
+        os.path.join("/mount/src/plateforme-supply-chain-", logo_filename),
+        logo_filename,
     ]
     
     for path in paths_to_check:
@@ -61,36 +59,23 @@ st.markdown("""
         text-align: center;
         color: white;
     }
-    .hero-with-logo {
-        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-        padding: 1.5rem 2rem;
-        border-radius: 20px;
-        margin-bottom: 2rem;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
+    .hero h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        margin-top: 1rem;
+    }
+    .hero p {
+        font-size: 1rem;
+        opacity: 0.9;
+        margin-bottom: 0;
     }
     .hero-logo {
-        flex-shrink: 0;
+        margin-bottom: 0.5rem;
     }
     .hero-logo img {
         width: 70px;
         height: auto;
         border-radius: 10px;
-    }
-    .hero-content {
-        flex: 1;
-        text-align: center;
-    }
-    .hero-content h1 {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-        color: white;
-    }
-    .hero-content p {
-        font-size: 1rem;
-        opacity: 0.9;
-        color: white;
     }
     .feature-card {
         background: white;
@@ -156,6 +141,7 @@ st.markdown("""
         margin-bottom: 2rem;
         color: #1a1a2e;
         border: 1px solid #c5d5e8;
+        margin-top: 2rem;
     }
     .about-section h3 {
         color: #1e3c72;
@@ -225,28 +211,30 @@ def show_home():
     # Chercher le logo
     logo_path = find_logo()
     
+    # En-tete avec logo au-dessus du titre (centré)
+    st.markdown('<div class="hero">', unsafe_allow_html=True)
+    
+    # Logo centré
     if logo_path and os.path.exists(logo_path):
-        # Affichage avec logo
-        col1, col2 = st.columns([1, 5])
-        with col1:
-            st.image(logo_path, width=70)
-        with col2:
-            st.markdown("""
-            <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 1rem; border-radius: 20px; text-align: center; color: white;">
-                <h1 style="margin: 0; font-size: 1.8rem;">🏭 Supply Chain Tools Suite</h1>
-                <p style="margin: 0.3rem 0 0 0; font-size: 0.9rem;">Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        # Affichage sans logo
-        st.markdown("""
-        <div class="hero">
-            <div class="hero-content">
-                <h1>🏭 Supply Chain Tools Suite</h1>
-                <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
-            </div>
+        st.markdown(f'''
+        <div style="display: flex; justify-content: center; margin-bottom: 0.5rem;">
+            <img src="data:image/jfif;base64,{st.image(logo_path, width=70)}" style="width: 70px; border-radius: 10px;">
         </div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
+        # Afficher le logo avec st.image
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.image(logo_path, width=70)
+    
+    # Titre et sous-titre
+    st.markdown("""
+        <h1>🏭 Supply Chain Tools Suite</h1>
+        <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Espace avant la section À propos
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Présentation
     st.markdown("""
@@ -264,7 +252,7 @@ def show_home():
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown('<h2 style="text-align: center;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
+    st.markdown('<h2 style="text-align: center; margin-top: 1rem;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
     # Liste des outils
     tools = [
