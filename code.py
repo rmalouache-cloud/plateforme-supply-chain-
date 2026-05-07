@@ -68,24 +68,18 @@ st.markdown("""
         opacity: 0.9;
         margin-bottom: 0;
     }
-    .logo-container {
-        display: flex;
-        justify-content: center;
+    /* Style pour le logo pleine largeur */
+    .logo-full-width {
+        width: 100%;
         margin-bottom: 1.5rem;
-        width: 100%;
-    }
-    .logo-container img {
-        width: 100%;
-        max-width: 100%;
-        border-radius: 20px;
-        object-fit: cover;
-    }
-    /* Conteneur pour le logo avec la même largeur que le cadre bleu */
-    .logo-wrapper {
-        background: transparent;
         border-radius: 20px;
         overflow: hidden;
-        margin-bottom: 1.5rem;
+    }
+    .logo-full-width img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border-radius: 20px;
     }
     .feature-card {
         background: white;
@@ -221,17 +215,17 @@ def show_home():
     # Chercher le logo
     logo_path = find_logo()
     
-    # Logo avec la même largeur que le cadre bleu
+    # Logo pleine largeur
     if logo_path and os.path.exists(logo_path):
-        # Utiliser st.image avec use_container_width=True
+        # Afficher le logo en pleine largeur
         st.image(logo_path, use_container_width=True)
         st.markdown("<br>", unsafe_allow_html=True)
     else:
-        # Si pas de logo, afficher une icône centrée
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.markdown("<h1 style='text-align: center; font-size: 4rem;'>🏭</h1>", unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
+        # Si pas de logo, afficher une ligne décorative
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                    height: 5px; width: 100%; border-radius: 10px; margin-bottom: 1.5rem;"></div>
+        """, unsafe_allow_html=True)
     
     # Cadre bleu avec titre et description
     st.markdown("""
