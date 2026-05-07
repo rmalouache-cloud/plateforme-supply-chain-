@@ -244,7 +244,7 @@ def show_home():
         <h3>🎯 A propos</h3>
         <p>Cette plateforme centralise tous vos outils de verification fournisseur :</p>
         <ul>
-            <li>📊 Container Dashboard - Permet de vérifier le taux de remplissage des conteneurs afin de s’assurer qu’ils respectent le pourcentage de chargement attendu (ex : 70%). Il aide à détecter les conteneurs sous-chargés ou mal optimisés. </li>
+            <li>📊 Container Dashboard - Permet de vérifier le taux de remplissage des conteneurs afin de s’assurer qu’ils respectent le pourcentage de chargement attendu 70%. Il aide à détecter les conteneurs sous-chargés ou mal optimisés. </li>
             <li>📦 Comparateur BOM vs Packing - Permet de comparer la BOM avec le packing fournisseur afin de vérifier les quantités, détecter les références manquantes, les changements de référence ou les articles en surplus.</li>
             <li>🔄 Comparateur BOM vs BOM - Permet de comparer deux versions de BOM afin d’identifier les différences comme les changements de références, l’ajout de composants ou les modifications de positions.</li>
             <li>📍 Check Position - Permet de vérifier que chaque composant possède bien une position correcte sur la carte mère. Par exemple, si une quantité est égale à 2, l’outil vérifie qu’il existe bien deux positions associées.</li>
