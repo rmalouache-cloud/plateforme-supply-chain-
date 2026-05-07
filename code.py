@@ -132,6 +132,12 @@ st.markdown("""
         border-radius: 10px;
         margin-bottom: 1rem;
         border-left: 4px solid #2a5298;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .tool-icon {
+        font-size: 2rem;
     }
     .tool-header h2 {
         margin: 0;
@@ -167,6 +173,8 @@ if 'tool_folder' not in st.session_state:
     st.session_state.tool_folder = None
 if 'tool_file' not in st.session_state:
     st.session_state.tool_file = None
+if 'tool_icon' not in st.session_state:
+    st.session_state.tool_icon = None
 
 # ==================== FONCTIONS ====================
 
@@ -175,6 +183,7 @@ def go_home():
     st.session_state.selected_tool = None
     st.session_state.tool_folder = None
     st.session_state.tool_file = None
+    st.session_state.tool_icon = None
     st.rerun()
 
 def check_file_exists(folder, filename):
@@ -217,11 +226,9 @@ def show_home():
     
     # Logo pleine largeur
     if logo_path and os.path.exists(logo_path):
-        # Afficher le logo en pleine largeur
         st.image(logo_path, use_container_width=True)
         st.markdown("<br>", unsafe_allow_html=True)
     else:
-        # Si pas de logo, afficher une ligne décorative
         st.markdown("""
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                     height: 5px; width: 100%; border-radius: 10px; margin-bottom: 1.5rem;"></div>
@@ -244,19 +251,19 @@ def show_home():
         <h3>🎯 A propos</h3>
         <p>Cette plateforme centralise tous vos outils de verification fournisseur :</p>
         <ul>
-            <li>📊 Container Dashboard - Permet de vérifier le taux de remplissage des conteneurs afin de s’assurer qu’ils respectent le pourcentage de chargement attendu 70%. Il aide à détecter les conteneurs sous-chargés ou mal optimisés. </li>
-            <li>📦 Comparateur BOM vs Packing - Permet de comparer la BOM avec le packing fournisseur afin de vérifier les quantités, détecter les références manquantes, les changements de référence ou les articles en surplus.</li>
-            <li>🔄 Comparateur BOM vs BOM - Permet de comparer deux versions de BOM afin d’identifier les différences comme les changements de références, l’ajout de composants ou les modifications de positions.</li>
-            <li>📍 Check Position - Permet de vérifier que chaque composant possède bien une position correcte sur la carte mère. Par exemple, si une quantité est égale à 2, l’outil vérifie qu’il existe bien deux positions associées.</li>
-            <li>✅ Checking Reply - Permet de vérifier les réponses du fournisseur concernant les quantités manquantes ou en surplus, et de contrôler si le stock fournisseur est correct pour remplacer les composants manquants.</li>
-            <li>🧮 Box Calculator - Permet de calculer automatiquement le nombre de cartons nécessaires selon le modèle produit et le type d’article à emballer.</li>
+            <li>📊 <strong>Container Dashboard</strong> - Permet de vérifier le taux de remplissage des conteneurs afin de s'assurer qu'ils respectent le pourcentage de chargement attendu 70%. Il aide à détecter les conteneurs sous-chargés ou mal optimisés.</li>
+            <li>📦 <strong>Comparateur BOM vs Packing</strong> - Permet de comparer la BOM avec le packing fournisseur afin de vérifier les quantités, détecter les références manquantes, les changements de référence ou les articles en surplus.</li>
+            <li>🔄 <strong>Comparateur BOM vs BOM</strong> - Permet de comparer deux versions de BOM afin d'identifier les différences comme les changements de références, l'ajout de composants ou les modifications de positions.</li>
+            <li>📍 <strong>Check Position</strong> - Permet de vérifier que chaque composant possède bien une position correcte sur la carte mère. Par exemple, si une quantité est égale à 2, l'outil vérifie qu'il existe bien deux positions associées.</li>
+            <li>✅ <strong>Checking Reply</strong> - Permet de vérifier les réponses du fournisseur concernant les quantités manquantes ou en surplus, et de contrôler si le stock fournisseur est correct pour remplacer les composants manquants.</li>
+            <li>🧮 <strong>Box Calculator</strong> - Permet de calculer automatiquement le nombre de cartons nécessaires selon le modèle produit et le type d'article à emballer.</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
     
     st.markdown('<h2 style="text-align: center; margin-top: 1rem;">📌 Outils disponibles</h2>', unsafe_allow_html=True)
     
-    # Liste des outils
+    # Liste des outils avec leurs icônes
     tools = [
         {"name": "Container Dashboard", "icon": "📊", "desc": "Tableau de bord des KPIs", "folder": "container-dashboard", "file": "code.py"},
         {"name": "BOM vs Packing", "icon": "📦", "desc": "Comparaison BOM / Packing", "folder": "comparator-bom_packing", "file": "app.py"},
@@ -291,6 +298,7 @@ def show_home():
                         st.session_state.selected_tool = tool['name']
                         st.session_state.tool_folder = tool['folder']
                         st.session_state.tool_file = tool['file']
+                        st.session_state.tool_icon = tool['icon']
                         st.rerun()
     
     st.markdown("""
@@ -307,9 +315,11 @@ def show_tool():
         if st.button("← Retour a l accueil", key="back_btn", use_container_width=True):
             go_home()
     
+    # Afficher l'en-tête avec l'icône spécifique de l'outil
     st.markdown(f"""
     <div class="tool-header">
-        <h2>🛠️ {st.session_state.selected_tool}</h2>
+        <div class="tool-icon">{st.session_state.tool_icon}</div>
+        <h2>{st.session_state.selected_tool}</h2>
     </div>
     """, unsafe_allow_html=True)
     
