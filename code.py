@@ -30,6 +30,26 @@ for module in modules_necessaires:
 CURRENT_DIR = os.getcwd()
 ROOT_DIR = os.path.dirname(CURRENT_DIR)
 
+# ==================== FONCTION POUR TROUVER LE LOGO ====================
+def find_logo():
+    """Cherche le logo dans plusieurs emplacements possibles"""
+    logo_filename = "logo.jfif"
+    
+    # Liste des chemins possibles
+    paths_to_check = [
+        os.path.join(ROOT_DIR, logo_filename),           # plateforme-supply-chain-/logo.jfif
+        os.path.join(CURRENT_DIR, logo_filename),        # container-dashboard/logo.jfif
+        os.path.join(CURRENT_DIR, "..", logo_filename),  # dossier parent
+        os.path.join("/mount/src/plateforme-supply-chain-", logo_filename),  # chemin absolu Streamlit
+        os.path.join("/mount/src/plateforme-supply-chain-/container-dashboard", logo_filename),
+        logo_filename,  # fichier dans le dossier courant
+    ]
+    
+    for path in paths_to_check:
+        if os.path.exists(path):
+            return path
+    return None
+
 # ==================== CSS ====================
 st.markdown("""
 <style>
@@ -40,26 +60,37 @@ st.markdown("""
         margin-bottom: 2rem;
         text-align: center;
         color: white;
+    }
+    .hero-with-logo {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        padding: 1.5rem 2rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 1rem;
-    }
-    .hero-content {
-        text-align: center;
-    }
-    .hero h1 {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .hero p {
-        font-size: 1rem;
-        opacity: 0.9;
+        gap: 1.5rem;
     }
     .hero-logo {
-        width: 60px;
-        height: 60px;
+        flex-shrink: 0;
+    }
+    .hero-logo img {
+        width: 70px;
+        height: auto;
         border-radius: 10px;
+    }
+    .hero-content {
+        flex: 1;
+        text-align: center;
+    }
+    .hero-content h1 {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+    .hero-content p {
+        font-size: 1rem;
+        opacity: 0.9;
+        color: white;
     }
     .feature-card {
         background: white;
@@ -191,24 +222,23 @@ def is_tool_available(folder, filename):
 # ==================== PAGE D'ACCUEIL ====================
 
 def show_home():
-    # En-tete avec logo et titre
-    logo_path = os.path.join(ROOT_DIR, "logo.jfif")
+    # Chercher le logo
+    logo_path = find_logo()
     
-    if os.path.exists(logo_path):
-        col_logo, col_title = st.columns([1, 5])
-        with col_logo:
-            st.image(logo_path, width=150)
-        with col_title:
+    if logo_path and os.path.exists(logo_path):
+        # Affichage avec logo
+        col1, col2 = st.columns([1, 5])
+        with col1:
+            st.image(logo_path, width=70)
+        with col2:
             st.markdown("""
-            <div class="hero" style="display: block; text-align: center;">
-                <div class="hero-content">
-                    <h1>🏭 Supply Chain Tools Suite</h1>
-                    <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
-                </div>
+            <div style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); padding: 1rem; border-radius: 20px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 1.8rem;">🏭 Supply Chain Tools Suite</h1>
+                <p style="margin: 0.3rem 0 0 0; font-size: 0.9rem;">Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
             </div>
             """, unsafe_allow_html=True)
     else:
-        # Si le logo n'existe pas, afficher sans
+        # Affichage sans logo
         st.markdown("""
         <div class="hero">
             <div class="hero-content">
