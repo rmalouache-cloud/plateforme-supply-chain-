@@ -90,7 +90,7 @@ def get_text(lang):
         },
         'en': {
             'title': "Container Filling Industrial Dashboard",
-            'subtitle': "Supply Chain Analysis - BOM & Packing Control",
+            
             'user_guide': "User Guide",
             'guide_content': """
             ### Instructions
