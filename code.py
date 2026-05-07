@@ -40,6 +40,13 @@ st.markdown("""
         margin-bottom: 2rem;
         text-align: center;
         color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .hero-content {
+        text-align: center;
     }
     .hero h1 {
         font-size: 2rem;
@@ -48,6 +55,11 @@ st.markdown("""
     .hero p {
         font-size: 1rem;
         opacity: 0.9;
+    }
+    .hero-logo {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
     }
     .feature-card {
         background: white;
@@ -179,13 +191,32 @@ def is_tool_available(folder, filename):
 # ==================== PAGE D'ACCUEIL ====================
 
 def show_home():
-    # En-tete avec logo intégré dans le titre
-    st.markdown("""
-    <div class="hero">
-        <h1>🏭 Supply Chain Tools Suite </h1>
-        <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l’analyse de la chaîne d’approvisionnement, de la BOM à l’expédition.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # En-tete avec logo et titre
+    logo_path = os.path.join(ROOT_DIR, "logo.jfif")
+    
+    if os.path.exists(logo_path):
+        col_logo, col_title = st.columns([1, 5])
+        with col_logo:
+            st.image(logo_path, width=70)
+        with col_title:
+            st.markdown("""
+            <div class="hero" style="display: block; text-align: center;">
+                <div class="hero-content">
+                    <h1>🏭 Supply Chain Tools Suite</h1>
+                    <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+    else:
+        # Si le logo n'existe pas, afficher sans
+        st.markdown("""
+        <div class="hero">
+            <div class="hero-content">
+                <h1>🏭 Supply Chain Tools Suite</h1>
+                <p>Plateforme intégrée pour la gestion et la vérification des expéditions fournisseurs et l'analyse de la chaîne d'approvisionnement, de la BOM à l'expédition.</p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
     # Présentation
     st.markdown("""
