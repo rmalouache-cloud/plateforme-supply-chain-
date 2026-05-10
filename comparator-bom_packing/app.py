@@ -15,14 +15,8 @@ import time
 st.set_page_config(page_title="BOM Comparator", layout="wide")
 
 # ==============================
-# LOGO
+# TITRE
 # ==============================
-try:
-    logo = Image.open("logo.jfif")
-    st.image(logo, width=1500)
-except:
-    st.title("BOM Comparator")
-
 st.markdown("## 📊  BOM vs Packing Comparison Tool  ⚖️")
 
 # ==============================
