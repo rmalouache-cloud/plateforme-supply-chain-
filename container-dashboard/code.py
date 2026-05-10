@@ -30,17 +30,11 @@ st.markdown("""
         border-radius: 10px;
         margin-bottom: 2rem;
     }
-    .main-title-en {
+    .main-title {
         color: white;
         margin: 0;
         font-size: 1.8em;
         font-weight: bold;
-    }
-    .main-title-fr {
-        color: #e0e0e0;
-        margin: 5px 0 0 0;
-        font-size: 1.2em;
-        font-weight: normal;
     }
     .metric-card-1 {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -102,8 +96,7 @@ def get_text(lang):
     """Retourne les textes selon la langue choisie"""
     texts = {
         'fr': {
-            'title_en': "Container Filling Industrial Dashboard",
-            'title_fr': "Tableau de Bord Industriel - Remplissage Conteneur",
+            'title': "Tableau de Bord Industriel - Remplissage Conteneur",
             'user_guide': "Manuel d'utilisation",
             'guide_content': """
             ### Instructions d'utilisation
@@ -159,8 +152,7 @@ def get_text(lang):
             'other_containers': "autre(s) conteneur(s) non affiche(s)"
         },
         'en': {
-            'title_en': "Container Filling Industrial Dashboard",
-            'title_fr': "Tableau de Bord Industriel - Remplissage Conteneur",
+            'title': "Container Filling Industrial Dashboard",
             'user_guide': "User Guide",
             'guide_content': """
             ### Instructions
@@ -423,10 +415,8 @@ def create_pdf(summary, full_title, chart_path, model, bl_no, lang='en'):
 # =========================
 # AFFICHAGE DES LOGOS
 # =========================
-def display_header(lang='en'):
-    """Affiche l'en-tête avec le cadre bleu contenant les deux titres"""
-    texts = get_text(lang)
-    
+def display_header(title):
+    """Affiche l'en-tête avec le cadre bleu contenant le titre"""
     try:
         container_logo = Image.open("conteneur_logo.png")
         stream_logo = Image.open("stream_logo.png")
@@ -436,11 +426,10 @@ def display_header(lang='en'):
         with col1:
             st.image(container_logo, width=150)
         with col2:
-            # Cadre bleu avec les deux titres
+            # Cadre bleu avec le titre
             st.markdown(f"""
                 <div class="main-header">
-                    <div class="main-title-en">{texts['title_en']}</div>
-                    <div class="main-title-fr">{texts['title_fr']}</div>
+                    <div class="main-title">{title}</div>
                 </div>
             """, unsafe_allow_html=True)
         with col3:
@@ -449,8 +438,7 @@ def display_header(lang='en'):
         # Si les logos ne sont pas trouvés, afficher juste le cadre bleu
         st.markdown(f"""
             <div class="main-header">
-                <div class="main-title-en">{texts['title_en']}</div>
-                <div class="main-title-fr">{texts['title_fr']}</div>
+                <div class="main-title">{title}</div>
             </div>
         """, unsafe_allow_html=True)
 
@@ -482,8 +470,8 @@ def main():
     
     texts = get_text(lang)
     
-    # En-tête avec le cadre bleu
-    display_header(lang)
+    # En-tête avec le cadre bleu et le titre selon la langue
+    display_header(texts['title'])
     
     # Guide utilisateur
     display_user_guide(lang)
@@ -515,7 +503,7 @@ def main():
         else:
             full_title = f"Container Filling Dashboard of {packing_type} of {model} {bl_no}"
     else:
-        full_title = texts['title_en'] if lang == 'en' else texts['title_fr']
+        full_title = texts['title']
     
     st.subheader(full_title)
     
