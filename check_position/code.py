@@ -185,7 +185,7 @@ def display_header():
         logo = Image.open(logo_path)
         
         # Redimensionner le logo (plus petit)
-        logo_size = (40, 40)
+        logo_size = (60, 60)
         logo.thumbnail(logo_size, Image.Resampling.LANCZOS)
         
         # Convertir l'image en base64 pour l'intégrer en HTML
