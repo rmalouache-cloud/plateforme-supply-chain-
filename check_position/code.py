@@ -150,7 +150,7 @@ t = lambda key: get_text(lang, key)
 # Logo and title
 col_logo, col_title = st.columns([1, 5])
 with col_logo:
-    logo_path = "logo.png"
+    logo_path = "check_position/logo.png"
     if os.path.exists(logo_path):
         logo = Image.open(logo_path)
         st.image(logo, width=120)
