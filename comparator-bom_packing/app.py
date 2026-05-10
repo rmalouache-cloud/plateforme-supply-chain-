@@ -12,33 +12,38 @@ import time
 # ==============================
 # CONFIG
 # ==============================
-st.set_page_config(page_title="BOM Comparator", layout="wide")
+st.set_page_config(
+    page_title="BOM Comparator",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # ==============================
-# TITRE AVEC CADRE BLEU
+# STYLE CSS PERSONNALISÉ
 # ==============================
-st.markdown(
-    """
-    <div style="
-        background-color: #1E88E5;
-        padding: 20px;
-        border-radius: 10px;
+st.markdown("""
+    <style>
+    .main-header {
         text-align: center;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-        margin-bottom: 30px;
-    ">
-        <h1 style="
-            color: white;
-            margin: 0;
-            font-size: 2.5em;
-            font-weight: bold;
-        ">
-            📊 BOM vs Packing Comparison Tool ⚖️
-        </h1>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        padding: 1rem;
+        background: linear-gradient(90deg, #1e3c72, #2a5298);
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    .status-badge {
+        padding: 0.2rem 0.5rem;
+        border-radius: 20px;
+        font-weight: bold;
+        text-align: center;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# ==============================
+# EN-TÊTE PRINCIPAL
+# ==============================
+st.markdown('<div class="main-header"><h1 style="color:white;">📊 BOM vs Packing Comparison Tool ⚖️</h1></div>', unsafe_allow_html=True)
 
 # ==============================
 # INPUTS
