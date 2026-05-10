@@ -196,7 +196,7 @@ def display_header():
         # Afficher le cadre bleu avec le logo et le titre
         st.markdown(f"""
             <div class="main-header">
-                <img src="data:image/png;base64,{img_str}" style="height:  {LOGO_SIZE}px; width: auto; border-radius: 5px;">
+                <img src="data:image/png;base64,{img_str}" style="height:  {logo_size}px; width: auto; border-radius: 5px;">
                 <div class="main-title">{title}</div>
             </div>
         """, unsafe_allow_html=True)
