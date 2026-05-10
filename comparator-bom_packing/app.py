@@ -15,9 +15,30 @@ import time
 st.set_page_config(page_title="BOM Comparator", layout="wide")
 
 # ==============================
-# TITRE
+# TITRE AVEC CADRE BLEU
 # ==============================
-st.markdown("## 📊  BOM vs Packing Comparison Tool  ⚖️")
+st.markdown(
+    """
+    <div style="
+        background-color: #1E88E5;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    ">
+        <h1 style="
+            color: white;
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: bold;
+        ">
+            📊 BOM vs Packing Comparison Tool ⚖️
+        </h1>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 # ==============================
 # INPUTS
