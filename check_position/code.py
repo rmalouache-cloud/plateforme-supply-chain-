@@ -6,6 +6,8 @@ from openpyxl.styles import PatternFill, Font, Border, Side, Alignment
 from openpyxl.styles.colors import Color
 from PIL import Image
 import os
+import base64
+from io import BytesIO
 
 st.set_page_config(page_title="CKD Position Validator", layout="wide")
 
@@ -126,24 +128,26 @@ st.markdown("""
     }
     .main-header {
         text-align: center;
-        padding: 0.5rem;
+        padding: 0.8rem;
         background: linear-gradient(90deg, #1e3c72, #2a5298);
         border-radius: 10px;
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 20px;
+        gap: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
     .main-title {
         color: white;
         margin: 0;
         font-size: 1.8em;
         font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
     }
-    .logo-container {
-        display: flex;
-        align-items: center;
+    .logo-in-header {
+        display: inline-block;
+        vertical-align: middle;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -168,46 +172,51 @@ elif lang_option == '🇫🇷 Français' and st.session_state.language != 'fr':
 lang = st.session_state.language
 t = lambda key: get_text(lang, key)
 
-# ==================== FONCTION POUR AFFICHER L'EN-TÊTE AVEC LOGO ====================
+# ==================== FONCTION POUR AFFICHER L'EN-TÊTE AVEC LOGO DANS LE CADRE ====================
 def display_header():
-    """Affiche l'en-tête avec le logo et le titre dans un cadre bleu"""
+    """Affiche l'en-tête avec le logo et le titre dans le même cadre bleu"""
     
     # Charger le logo
     logo_path = "check_position/logomainboard.png"
+    title = t('title')
     
     try:
-        from PIL import Image
+        # Ouvrir et redimensionner le logo
         logo = Image.open(logo_path)
         
-        # Redimensionner le logo pour le rendre plus petit
-        logo.thumbnail((60, 60))
+        # Redimensionner le logo (plus petit)
+        logo_size = (40, 40)
+        logo.thumbnail(logo_size, Image.Resampling.LANCZOS)
         
-        # Afficher le logo et le titre dans des colonnes
-        col1, col2, col3 = st.columns([1, 6, 1])
+        # Convertir l'image en base64 pour l'intégrer en HTML
+        buffered = BytesIO()
+        logo.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode()
         
-        with col1:
-            st.image(logo, width=50)
+        # Afficher le cadre bleu avec le logo et le titre
+        st.markdown(f"""
+            <div class="main-header">
+                <img src="data:image/png;base64,{img_str}" style="height: 40px; width: auto; border-radius: 5px;">
+                <div class="main-title">{title}</div>
+            </div>
+        """, unsafe_allow_html=True)
         
-        with col2:
-            title = t('title')
-            st.markdown(f"""
-                <div class="main-header">
-                    <div class="main-title">{title}</div>
-                </div>
-            """, unsafe_allow_html=True)
-        
-        with col3:
-            st.empty()
-            
     except FileNotFoundError:
-        # Si le logo n'est pas trouvé, afficher juste le titre
-        title = t('title')
+        # Si le logo n'est pas trouvé, afficher juste le titre dans le cadre
         st.markdown(f"""
             <div class="main-header">
                 <div class="main-title">{title}</div>
             </div>
         """, unsafe_allow_html=True)
         st.caption(f"{t('logo_not_found')} {logo_path}")
+    except Exception as e:
+        # En cas d'erreur avec l'image, afficher juste le titre
+        st.markdown(f"""
+            <div class="main-header">
+                <div class="main-title">{title}</div>
+            </div>
+        """, unsafe_allow_html=True)
+        st.caption(f"Erreur chargement logo: {str(e)}")
     
     # Afficher le sous-titre
     st.markdown(f"*{t('subtitle')}*")
