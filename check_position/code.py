@@ -124,6 +124,27 @@ st.markdown("""
         border-radius: 10px;
         padding: 10px;
     }
+    .main-header {
+        text-align: center;
+        padding: 0.5rem;
+        background: linear-gradient(90deg, #1e3c72, #2a5298);
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+    }
+    .main-title {
+        color: white;
+        margin: 0;
+        font-size: 1.8em;
+        font-weight: bold;
+    }
+    .logo-container {
+        display: flex;
+        align-items: center;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -147,19 +168,53 @@ elif lang_option == '🇫🇷 Français' and st.session_state.language != 'fr':
 lang = st.session_state.language
 t = lambda key: get_text(lang, key)
 
-# Logo and title
-col_logo, col_title = st.columns([1, 5])
-with col_logo:
-    logo_path = "check_position/logo.png"
-    if os.path.exists(logo_path):
+# ==================== FONCTION POUR AFFICHER L'EN-TÊTE AVEC LOGO ====================
+def display_header():
+    """Affiche l'en-tête avec le logo et le titre dans un cadre bleu"""
+    
+    # Charger le logo
+    logo_path = "check_position/logomainboard.png"
+    
+    try:
+        from PIL import Image
         logo = Image.open(logo_path)
-        st.image(logo, width=120)
-    else:
-        st.markdown("# 📺")
+        
+        # Redimensionner le logo pour le rendre plus petit
+        logo.thumbnail((60, 60))
+        
+        # Afficher le logo et le titre dans des colonnes
+        col1, col2, col3 = st.columns([1, 6, 1])
+        
+        with col1:
+            st.image(logo, width=50)
+        
+        with col2:
+            title = t('title')
+            st.markdown(f"""
+                <div class="main-header">
+                    <div class="main-title">{title}</div>
+                </div>
+            """, unsafe_allow_html=True)
+        
+        with col3:
+            st.empty()
+            
+    except FileNotFoundError:
+        # Si le logo n'est pas trouvé, afficher juste le titre
+        title = t('title')
+        st.markdown(f"""
+            <div class="main-header">
+                <div class="main-title">{title}</div>
+            </div>
+        """, unsafe_allow_html=True)
         st.caption(f"{t('logo_not_found')} {logo_path}")
-with col_title:
-    st.markdown(f"# {t('title')}")
-st.markdown(t('subtitle'))
+    
+    # Afficher le sous-titre
+    st.markdown(f"*{t('subtitle')}*")
+    st.markdown("---")
+
+# Afficher l'en-tête
+display_header()
 
 # Initialize session state
 if 'show_problems' not in st.session_state:
